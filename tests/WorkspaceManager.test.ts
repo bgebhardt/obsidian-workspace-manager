@@ -1,5 +1,11 @@
 import { WorkspaceManager } from '../src/WorkspaceManager';
 
+jest.mock('obsidian', () => ({
+    Notice: jest.fn(),
+    Plugin: jest.fn(),
+    App: jest.fn()
+}), { virtual: true });
+
 describe('WorkspaceManager', () => {
     let workspaceManager: WorkspaceManager;
     let mockApp: any;
