@@ -5,6 +5,28 @@ I am building an Obsidian plugin to allow me to move and delete the open files b
 
 Here's how you could build a workspace reorganization UI that directly edits the workspaces.json file:
 
+
+## Getting Started
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/obsidian-workspace-manager.git
+    ```
+2.  **Install dependencies:**
+    ```bash
+    cd obsidian-workspace-manager
+    npm install
+    ```
+3.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
+4.  **Run tests:**
+    ```bash
+    npm test
+    ```
+
+    
 ## Plugin Architecture
 
 **Core Components:**
