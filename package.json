@@ -23,7 +23,8 @@
     "obsidian": "latest",
     "ts-jest": "^29.1.0",
     "typescript": "^5.0.4",
-    "tslib": "^2.5.0"
+    "tslib": "^2.5.0",
+    "builtin-modules": "^3.3.0"
   },
   "jest": {
     "preset": "ts-jest",
