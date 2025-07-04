@@ -1,0 +1,689 @@
+{
+  "workspaces": {
+    "Default": {
+      "main": {
+        "id": "b60389c9dfeb9436",
+        "type": "split",
+        "children": [
+          {
+            "id": "274f6ba4643a1fa8",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "3772a32d1c07ee97",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "Shopping/Trackpad research.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "Trackpad research"
+                }
+              },
+              {
+                "id": "bbb50177ba26fa41",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "Shopping/Tablet Research.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "Tablet Research"
+                }
+              },
+              {
+                "id": "9172175cca10f932",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "Apple Watch battery"
+                }
+              }
+            ],
+            "currentTab": 2
+          },
+          {
+            "id": "6da4294241bac4c1",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "d22a951c57fae340",
+                "type": "leaf",
+                "state": {
+                  "type": "graph",
+                  "state": {},
+                  "icon": "lucide-git-fork",
+                  "title": "Graph view"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "vertical"
+      },
+      "left": {
+        "id": "8e0342df1da44c28",
+        "type": "split",
+        "children": [
+          {
+            "id": "0bba5baaf926e8ca",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "431b3a5c0c7b217c",
+                "type": "leaf",
+                "state": {
+                  "type": "file-explorer",
+                  "state": {
+                    "sortOrder": "alphabetical",
+                    "autoReveal": false
+                  },
+                  "icon": "lucide-folder-closed",
+                  "title": "Files"
+                }
+              },
+              {
+                "id": "81474115227b073f",
+                "type": "leaf",
+                "state": {
+                  "type": "search",
+                  "state": {
+                    "query": "",
+                    "matchingCase": false,
+                    "explainSearch": false,
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical"
+                  },
+                  "icon": "lucide-search",
+                  "title": "Search"
+                }
+              },
+              {
+                "id": "b7491a6a31aae367",
+                "type": "leaf",
+                "state": {
+                  "type": "bookmarks",
+                  "state": {},
+                  "icon": "lucide-bookmark",
+                  "title": "Bookmarks"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal",
+        "width": 300
+      },
+      "right": {
+        "id": "83ff9da1ed283523",
+        "type": "split",
+        "children": [
+          {
+            "id": "5627cb099dd91283",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "2aeeb07be53c87ab",
+                "type": "leaf",
+                "state": {
+                  "type": "backlink",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical",
+                    "showSearch": false,
+                    "searchQuery": "",
+                    "backlinkCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-coming-in",
+                  "title": "Backlinks for Apple Watch battery"
+                }
+              },
+              {
+                "id": "3e676865456ff2bb",
+                "type": "leaf",
+                "state": {
+                  "type": "outgoing-link",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "linksCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-going-out",
+                  "title": "Outgoing links from Apple Watch battery"
+                }
+              },
+              {
+                "id": "b10df56fcfcb0c33",
+                "type": "leaf",
+                "state": {
+                  "type": "tag",
+                  "state": {
+                    "sortOrder": "frequency",
+                    "useHierarchy": true,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-tags",
+                  "title": "Tags"
+                }
+              },
+              {
+                "id": "c87616fb2ea3369b",
+                "type": "leaf",
+                "state": {
+                  "type": "outline",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "followCursor": false,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-list",
+                  "title": "Outline of Apple Watch battery"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal",
+        "width": 300,
+        "collapsed": true
+      },
+      "left-ribbon": {
+        "hiddenItems": {
+          "switcher:Open quick switcher": false,
+          "graph:Open graph view": false,
+          "canvas:Create new canvas": false,
+          "daily-notes:Open today's daily note": false,
+          "templates:Insert template": false,
+          "command-palette:Open command palette": false,
+          "markdown-importer:Open format converter": false,
+          "publish:Publish changes...": false,
+          "workspaces:Manage workspace layouts": false
+        }
+      },
+      "active": "9172175cca10f932",
+      "mtime": "2025-07-04T09:57:42-07:00",
+      "workspaces-plus:settings-v1": {
+        "explorerFoldState": [
+          "Raindrop",
+          "Shopping",
+          "templates"
+        ]
+      }
+    },
+    "Test2": {
+      "main": {
+        "id": "b60389c9dfeb9436",
+        "type": "split",
+        "children": [
+          {
+            "id": "274f6ba4643a1fa8",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "3772a32d1c07ee97",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "Shopping/Trackpad research.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "Trackpad research"
+                }
+              },
+              {
+                "id": "bbb50177ba26fa41",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "Shopping/Tablet Research.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "Tablet Research"
+                }
+              },
+              {
+                "id": "9172175cca10f932",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "Apple Watch battery"
+                }
+              }
+            ],
+            "currentTab": 2
+          },
+          {
+            "id": "6da4294241bac4c1",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "d22a951c57fae340",
+                "type": "leaf",
+                "state": {
+                  "type": "graph",
+                  "state": {},
+                  "icon": "lucide-git-fork",
+                  "title": "Graph view"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "vertical"
+      },
+      "left": {
+        "id": "8e0342df1da44c28",
+        "type": "split",
+        "children": [
+          {
+            "id": "0bba5baaf926e8ca",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "431b3a5c0c7b217c",
+                "type": "leaf",
+                "state": {
+                  "type": "file-explorer",
+                  "state": {
+                    "sortOrder": "alphabetical",
+                    "autoReveal": false
+                  },
+                  "icon": "lucide-folder-closed",
+                  "title": "Files"
+                }
+              },
+              {
+                "id": "81474115227b073f",
+                "type": "leaf",
+                "state": {
+                  "type": "search",
+                  "state": {
+                    "query": "",
+                    "matchingCase": false,
+                    "explainSearch": false,
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical"
+                  },
+                  "icon": "lucide-search",
+                  "title": "Search"
+                }
+              },
+              {
+                "id": "b7491a6a31aae367",
+                "type": "leaf",
+                "state": {
+                  "type": "bookmarks",
+                  "state": {},
+                  "icon": "lucide-bookmark",
+                  "title": "Bookmarks"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal",
+        "width": 300
+      },
+      "right": {
+        "id": "83ff9da1ed283523",
+        "type": "split",
+        "children": [
+          {
+            "id": "5627cb099dd91283",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "2aeeb07be53c87ab",
+                "type": "leaf",
+                "state": {
+                  "type": "backlink",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical",
+                    "showSearch": false,
+                    "searchQuery": "",
+                    "backlinkCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-coming-in",
+                  "title": "Backlinks for Apple Watch battery"
+                }
+              },
+              {
+                "id": "3e676865456ff2bb",
+                "type": "leaf",
+                "state": {
+                  "type": "outgoing-link",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "linksCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-going-out",
+                  "title": "Outgoing links from Apple Watch battery"
+                }
+              },
+              {
+                "id": "b10df56fcfcb0c33",
+                "type": "leaf",
+                "state": {
+                  "type": "tag",
+                  "state": {
+                    "sortOrder": "frequency",
+                    "useHierarchy": true,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-tags",
+                  "title": "Tags"
+                }
+              },
+              {
+                "id": "c87616fb2ea3369b",
+                "type": "leaf",
+                "state": {
+                  "type": "outline",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "followCursor": false,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-list",
+                  "title": "Outline of Apple Watch battery"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal",
+        "width": 300,
+        "collapsed": true
+      },
+      "left-ribbon": {
+        "hiddenItems": {
+          "switcher:Open quick switcher": false,
+          "graph:Open graph view": false,
+          "canvas:Create new canvas": false,
+          "daily-notes:Open today's daily note": false,
+          "templates:Insert template": false,
+          "command-palette:Open command palette": false,
+          "markdown-importer:Open format converter": false,
+          "publish:Publish changes...": false,
+          "workspaces:Manage workspace layouts": false
+        }
+      },
+      "active": "9172175cca10f932",
+      "mtime": "2025-07-04T09:57:50-07:00",
+      "workspaces-plus:settings-v1": {
+        "explorerFoldState": [
+          "Raindrop",
+          "Shopping",
+          "templates"
+        ]
+      }
+    },
+    "Test1": {
+      "main": {
+        "id": "b60389c9dfeb9436",
+        "type": "split",
+        "children": [
+          {
+            "id": "274f6ba4643a1fa8",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "3772a32d1c07ee97",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "templates/weekly_template.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "weekly_template"
+                }
+              },
+              {
+                "id": "d68749ca04d2437e",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "templates/templates.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "templates"
+                }
+              },
+              {
+                "id": "464b1cffd3cca7a6",
+                "type": "leaf",
+                "state": {
+                  "type": "markdown",
+                  "state": {
+                    "file": "templates/Movie QuickAdd Template.md",
+                    "mode": "source",
+                    "source": false
+                  },
+                  "icon": "lucide-file",
+                  "title": "Movie QuickAdd Template"
+                }
+              }
+            ],
+            "currentTab": 2
+          },
+          {
+            "id": "6da4294241bac4c1",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "d22a951c57fae340",
+                "type": "leaf",
+                "state": {
+                  "type": "graph",
+                  "state": {},
+                  "icon": "lucide-git-fork",
+                  "title": "Graph view"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "vertical"
+      },
+      "left": {
+        "id": "8e0342df1da44c28",
+        "type": "split",
+        "children": [
+          {
+            "id": "0bba5baaf926e8ca",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "431b3a5c0c7b217c",
+                "type": "leaf",
+                "state": {
+                  "type": "file-explorer",
+                  "state": {
+                    "sortOrder": "alphabetical",
+                    "autoReveal": false
+                  },
+                  "icon": "lucide-folder-closed",
+                  "title": "Files"
+                }
+              },
+              {
+                "id": "81474115227b073f",
+                "type": "leaf",
+                "state": {
+                  "type": "search",
+                  "state": {
+                    "query": "",
+                    "matchingCase": false,
+                    "explainSearch": false,
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical"
+                  },
+                  "icon": "lucide-search",
+                  "title": "Search"
+                }
+              },
+              {
+                "id": "b7491a6a31aae367",
+                "type": "leaf",
+                "state": {
+                  "type": "bookmarks",
+                  "state": {},
+                  "icon": "lucide-bookmark",
+                  "title": "Bookmarks"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal",
+        "width": 300
+      },
+      "right": {
+        "id": "83ff9da1ed283523",
+        "type": "split",
+        "children": [
+          {
+            "id": "5627cb099dd91283",
+            "type": "tabs",
+            "children": [
+              {
+                "id": "2aeeb07be53c87ab",
+                "type": "leaf",
+                "state": {
+                  "type": "backlink",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "collapseAll": false,
+                    "extraContext": false,
+                    "sortOrder": "alphabetical",
+                    "showSearch": false,
+                    "searchQuery": "",
+                    "backlinkCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-coming-in",
+                  "title": "Backlinks for Apple Watch battery"
+                }
+              },
+              {
+                "id": "3e676865456ff2bb",
+                "type": "leaf",
+                "state": {
+                  "type": "outgoing-link",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "linksCollapsed": false,
+                    "unlinkedCollapsed": true
+                  },
+                  "icon": "links-going-out",
+                  "title": "Outgoing links from Apple Watch battery"
+                }
+              },
+              {
+                "id": "b10df56fcfcb0c33",
+                "type": "leaf",
+                "state": {
+                  "type": "tag",
+                  "state": {
+                    "sortOrder": "frequency",
+                    "useHierarchy": true,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-tags",
+                  "title": "Tags"
+                }
+              },
+              {
+                "id": "c87616fb2ea3369b",
+                "type": "leaf",
+                "state": {
+                  "type": "outline",
+                  "state": {
+                    "file": "Shopping/Apple Watch battery.md",
+                    "followCursor": false,
+                    "showSearch": false,
+                    "searchQuery": ""
+                  },
+                  "icon": "lucide-list",
+                  "title": "Outline of Apple Watch battery"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal",
+        "width": 300,
+        "collapsed": true
+      },
+      "left-ribbon": {
+        "hiddenItems": {
+          "switcher:Open quick switcher": false,
+          "graph:Open graph view": false,
+          "canvas:Create new canvas": false,
+          "daily-notes:Open today's daily note": false,
+          "templates:Insert template": false,
+          "command-palette:Open command palette": false,
+          "markdown-importer:Open format converter": false,
+          "publish:Publish changes...": false,
+          "workspaces:Manage workspace layouts": false
+        }
+      },
+      "active": "464b1cffd3cca7a6",
+      "mtime": "2025-07-04T09:58:06-07:00",
+      "workspaces-plus:settings-v1": {
+        "explorerFoldState": [
+          "Raindrop",
+          "Shopping",
+          "templates"
+        ]
+      }
+    }
+  },
+  "active": "Test1"
+}

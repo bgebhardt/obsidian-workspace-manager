@@ -1,94 +1,145 @@
-# Obsidian Sample Plugin
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+# Workspaces Manager
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+I am building an Obsidian plugin to allow me to move and delete the open files between workspaces. Suggest how to write a plugin that will allow doing this in Obsidian in an UI will directly edit the .obsidian/workspaces.json
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+Here's how you could build a workspace reorganization UI that directly edits the workspaces.json file:
 
-## First time developing plugins?
+## Plugin Architecture
 
-Quick starting guide for new plugin devs:
+**Core Components:**
+1. **Workspace Parser** - Read/write the workspaces.json file
+2. **UI Modal** - Main interface for reorganization
+3. **File Manager** - Handle file operations and validation
+4. **Backup System** - Safety mechanism for rollbacks
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+## Implementation Approach
 
-## Releasing new releases
+**Data Structure Management:**
+```typescript
+interface WorkspaceData {
+  name: string;
+  tabs: TabData[];
+  layout: any; // Obsidian's layout structure
+}
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
-
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
-
-## Adding your plugin to the community plugin list
-
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
-
-## How to use
-
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
+interface TabData {
+  path: string;
+  title: string;
+  type: string; // 'markdown', 'canvas', etc.
 }
 ```
 
-If you have multiple URLs, you can also do:
+**UI Design Options:**
 
+**Option 1: Drag & Drop Interface**
+- Left panel: List of all workspaces
+- Right panel: Files in selected workspace
+- Drag files between workspace panels
+- Visual indicators for file types and states
+
+Let's choose Option 1
+
+**Option 2: Batch Transfer Interface**
+- Dropdown to select source workspace
+- Checklist of files in source workspace
+- Dropdown to select destination workspace
+- "Move Selected" button
+
+**Option 3: Matrix View**
+- Grid showing workspaces (columns) vs files (rows)
+- Checkboxes at intersections
+- Quick overview of which files are in which workspaces
+
+For this implementation lets choose Option 1.
+
+## Technical Implementation
+
+**File Operations:**
+```typescript
+// Read current workspaces
+const workspacesFile = this.app.vault.adapter.read('.obsidian/workspaces.json');
+
+// Parse and modify
+const workspaces = JSON.parse(workspacesFile);
+
+// Update workspace structure
+// Validate file paths still exist
+// Write back to file
+```
+
+**Safety Features:**
+- Automatic backup before any changes
+- Validation that files still exist in vault
+- Undo/redo functionality
+- Preview mode before applying changes
+
+**Integration Points:**
+- Hook into Obsidian's workspace events
+- Validate against current vault file structure
+- Respect Obsidian's pane layout rules
+
+## Development Path
+
+1. **Start with a simple modal** that displays current workspace contents
+2. **Add basic file moving** between workspaces
+3. **Implement drag & drop** for better UX
+4. **Add validation and safety features**
+5. **Polish the UI** with better styling and feedback
+
+Would you prefer to focus on any particular UI approach, or would you like me to elaborate on the technical implementation details for any of these components?
+
+# Difference between between the workspace.json and workspaces.json
+Obsidian uses two different workspace-related JSON files:
+
+## workspace.json (singular)
+- **Purpose**: Stores your **current** workspace state
+- **Content**: The live layout, open files, pane arrangements, sidebar states
+- **When updated**: Continuously as you work - opening files, moving panes, etc.
+- **Location**: `.obsidian/workspace.json`
+- **Think of it as**: Your "current session" that gets restored when you reopen Obsidian
+
+## workspaces.json (plural) 
+- **Purpose**: Stores your **saved** workspace configurations
+- **Content**: Named workspace snapshots that you've deliberately saved
+- **When updated**: Only when you manually save/delete/rename workspaces
+- **Location**: `.obsidian/workspaces.json`
+- **Think of it as**: Your "bookmarked workspace layouts"
+
+## Key Differences
+
+**workspace.json:**
 ```json
 {
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
+  "main": {
+    "id": "abc123",
+    "type": "split",
+    "children": [...]
+  },
+  "left": {...},
+  "right": {...}
 }
 ```
 
-## API Documentation
+**workspaces.json:**
+```json
+{
+  "My Project A": {
+    "main": {...},
+    "left": {...}
+  },
+  "Research Mode": {
+    "main": {...},
+    "left": {...}
+  }
+}
+```
 
-See https://github.com/obsidianmd/obsidian-api
+## For Your Plugin
+
+Your workspace reorganizer plugin should target **workspaces.json** (plural) because:
+- That's where the named, saved workspaces live
+- Users want to reorganize their saved workspace configurations
+- The singular `workspace.json` is just the current state and gets overwritten constantly
+
+The `workspace.json` gets updated automatically when you load a saved workspace from `workspaces.json`.
