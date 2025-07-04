@@ -1,52 +1,22 @@
-/*
+/* styles.css */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.workspace-manager-modal {
+    width: 500px;
+    max-width: 100%;
+}
 
-If your plugin does not need CSS, delete this file.
-
-*/
-.workspace-list, .file-list {
-    margin: 10px 0;
-    padding: 10px;
+.workspace-manager-tabs {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 1rem 0;
     border: 1px solid var(--background-modifier-border);
-    border-radius: 5px;
+    border-radius: 4px;
+    padding: 0.5rem;
 }
 
-.workspace-item, .file-item {
-    padding: 5px;
-    margin: 2px 0;
-    cursor: pointer;
-    border-radius: 3px;
-}
-
-.workspace-item:hover {
-    background-color: var(--background-modifier-hover);
-}
-
-.workspace-item.selected {
-    background-color: var(--background-modifier-accent);
-}
-
-.file-item {
+.workspace-manager-buttons {
     display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.file-path {
-    color: var(--text-muted);
-    font-size: 0.9em;
-}
-
-.controls {
-    margin-top: 20px;
-    padding-top: 10px;
-    border-top: 1px solid var(--background-modifier-border);
-}
-
-.button-container {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
 }

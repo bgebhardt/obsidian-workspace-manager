@@ -108,4 +108,106 @@ describe('WorkspaceManager', () => {
             expect(tabs[0].type).toBe('markdown');
         });
     });
+
+    describe('moveTabsBetweenWorkspaces', () => {
+        let mockWorkspacesData: any;
+
+        beforeEach(() => {
+            mockWorkspacesData = {
+                workspaces: {
+                    'Source': {
+                        main: {
+                            id: 'main-source', type: 'split', children: [
+                                {
+                                    id: 'tabs-source', type: 'tabs', children: [
+                                        { id: 'leaf1', type: 'leaf', state: { state: { file: 'file1.md' } } }
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    'Target': {
+                        main: {
+                            id: 'main-target', type: 'split', children: [
+                                {
+                                    id: 'tabs-target', type: 'tabs', children: [
+                                        { id: 'leaf2', type: 'leaf', state: { state: { file: 'file2.md' } } }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                active: 'Source'
+            };
+            mockApp.vault.adapter.read.mockResolvedValue(JSON.stringify(mockWorkspacesData));
+            mockApp.vault.adapter.exists.mockResolvedValue(true);
+            mockApp.vault.adapter.list.mockResolvedValue({ files: [] });
+        });
+
+        it('should move tabs from source to target workspace', async () => {
+            const success = await workspaceManager.moveTabsBetweenWorkspaces('Source', 'Target', ['leaf1']);
+
+            expect(success).toBe(true);
+            expect(mockApp.vault.adapter.write).toHaveBeenCalled();
+
+            const writtenData = JSON.parse(mockApp.vault.adapter.write.mock.calls[0][1]);
+            const sourceWorkspace = writtenData.workspaces['Source'];
+            const targetWorkspace = writtenData.workspaces['Target'];
+
+            expect(sourceWorkspace.main.children[0].children).toHaveLength(0);
+            expect(targetWorkspace.main.children[0].children).toHaveLength(2);
+            expect(targetWorkspace.main.children[0].children.find((t: any) => t.id === 'leaf1')).toBeDefined();
+        });
+
+        it('should return false and rollback on error', async () => {
+            mockApp.vault.adapter.write.mockRejectedValue(new Error('Write failed'));
+
+            const success = await workspaceManager.moveTabsBetweenWorkspaces('Source', 'Target', ['leaf1']);
+
+            expect(success).toBe(false);
+            // Check if rollback was called, which reads the backup
+            expect(mockApp.vault.adapter.read).toHaveBeenCalledWith('.obsidian/backups/workspaces-backup-some-timestamp.json');
+        });
+    });
+
+    describe('deleteTabsFromWorkspace', () => {
+        let mockWorkspacesData: any;
+
+        beforeEach(() => {
+            mockWorkspacesData = {
+                workspaces: {
+                    'MyWorkspace': {
+                        main: {
+                            id: 'main', type: 'split', children: [
+                                {
+                                    id: 'tabs', type: 'tabs', children: [
+                                        { id: 'leaf1', type: 'leaf', state: { state: { file: 'file1.md' } } },
+                                        { id: 'leaf2', type: 'leaf', state: { state: { file: 'file2.md' } } }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                },
+                active: 'MyWorkspace'
+            };
+            mockApp.vault.adapter.read.mockResolvedValue(JSON.stringify(mockWorkspacesData));
+            mockApp.vault.adapter.exists.mockResolvedValue(true);
+            mockApp.vault.adapter.list.mockResolvedValue({ files: [] });
+        });
+
+        it('should delete tabs from a workspace', async () => {
+            const success = await workspaceManager.deleteTabsFromWorkspace('MyWorkspace', ['leaf1']);
+
+            expect(success).toBe(true);
+            expect(mockApp.vault.adapter.write).toHaveBeenCalled();
+
+            const writtenData = JSON.parse(mockApp.vault.adapter.write.mock.calls[0][1]);
+            const workspace = writtenData.workspaces['MyWorkspace'];
+
+            expect(workspace.main.children[0].children).toHaveLength(1);
+            expect(workspace.main.children[0].children.find((t: any) => t.id === 'leaf1')).toBeUndefined();
+        });
+    });
 });

@@ -1,5 +1,6 @@
 import { Plugin } from 'obsidian';
 import { WorkspaceManager } from './WorkspaceManager';
+import { WorkspaceManagerModal } from './WorkspaceManagerModal';
 
 export default class WorkspaceManagerPlugin extends Plugin {
     workspaceManager!: WorkspaceManager;
@@ -11,8 +12,7 @@ export default class WorkspaceManagerPlugin extends Plugin {
 
         // Add ribbon icon
         this.addRibbonIcon('folder', 'Workspace Manager', () => {
-            // In Phase 2, this will open the WorkspaceManagerModal
-            console.log('Workspace Manager icon clicked');
+            new WorkspaceManagerModal(this.app, this.workspaceManager).open();
         });
 
         // Add command
@@ -20,8 +20,7 @@ export default class WorkspaceManagerPlugin extends Plugin {
             id: 'open-workspace-manager',
             name: 'Open Workspace Manager',
             callback: () => {
-                // In Phase 2, this will open the WorkspaceManagerModal
-                console.log('Workspace Manager command executed');
+                new WorkspaceManagerModal(this.app, this.workspaceManager).open();
             }
         });
     }
