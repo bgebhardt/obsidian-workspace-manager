@@ -82,7 +82,7 @@ export class WorkspaceManagerModal extends Modal {
                 );
                 if (success) {
                     new Notice(`Moved ${this.selectedTabs.length} tabs to ${this.targetWorkspace}.`);
-                    this.close();
+                    this.updateTabsList();
                 }
             });
 
