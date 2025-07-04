@@ -1,10 +1,11 @@
-import { App, Notice, Plugin } from 'obsidian';
-import { WorkspacesData, WorkspaceLayout, LayoutComponent, TabInfo } from './types';
+import { App, Notice } from 'obsidian';
+import { WorkspacesData, WorkspaceLayout, LayoutComponent, TabInfo, WorkspaceManagerSettings } from './types';
+import { Logger } from './Logger';
 
 export class WorkspaceManager {
     private transactionBackupPath: string | null = null;
 
-    constructor(private app: App, private plugin: Plugin) {}
+    constructor(private app: App, private settings: WorkspaceManagerSettings) {}
 
     // Read workspaces.json
     async getWorkspaces(): Promise<WorkspacesData> {
@@ -13,7 +14,7 @@ export class WorkspaceManager {
             return JSON.parse(workspaceFile);
         } catch (error) {
             new Notice('Could not read workspaces file');
-            console.error(error);
+            Logger.error('Could not read workspaces file', error);
             return { workspaces: {}, active: '' };
         }
     }
@@ -30,7 +31,7 @@ export class WorkspaceManager {
             new Notice('Workspaces updated successfully');
         } catch (error) {
             new Notice('Failed to save workspaces');
-            console.error(error);
+            Logger.error('Failed to save workspaces', error);
             throw error;
         }
     }
@@ -38,8 +39,7 @@ export class WorkspaceManager {
     // Create a backup of workspaces.json
     async createBackup(): Promise<string> {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        // @ts-ignore
-        const backupFolder = this.plugin.settings.backupLocation || '.obsidian/backups';
+        const backupFolder = this.settings.backupLocation || '.obsidian/backups';
         const backupName = `${backupFolder}/workspaces-backup-${timestamp}.json`;
 
         try {
@@ -55,7 +55,7 @@ export class WorkspaceManager {
 
             return backupName;
         } catch (error) {
-            console.warn('Could not create backup:', error);
+            Logger.warn('Could not create backup:', error);
             throw error;
         }
     }
@@ -118,7 +118,7 @@ export class WorkspaceManager {
                 if (tabInfo) {
                     tabsToMove.push(tabInfo.tab);
                 } else {
-                    console.warn(`Tab ${tabId} not found in workspace ${sourceWorkspaceName}`);
+                    Logger.warn(`Tab ${tabId} not found in workspace ${sourceWorkspaceName}`);
                 }
             }
 
@@ -146,7 +146,7 @@ export class WorkspaceManager {
         } catch (error) {
             // Rollback on error
             await this.rollbackTransaction();
-            console.error('Failed to move files:', error);
+            Logger.error('Failed to move files:', error);
             new Notice(`Failed to move files: ${(error as Error).message}`);
             return false;
         }
@@ -168,7 +168,7 @@ export class WorkspaceManager {
                 if (this.removeTabFromWorkspace(workspace, tabId)) {
                     tabsDeleted++;
                 } else {
-                    console.warn(`Tab ${tabId} not found in workspace ${workspaceName}`);
+                    Logger.warn(`Tab ${tabId} not found in workspace ${workspaceName}`);
                 }
             }
 
@@ -182,7 +182,7 @@ export class WorkspaceManager {
 
         } catch (error) {
             await this.rollbackTransaction();
-            console.error('Failed to delete tabs:', error);
+            Logger.error('Failed to delete tabs:', error);
             new Notice(`Failed to delete tabs: ${(error as Error).message}`);
             return false;
         }
@@ -201,7 +201,7 @@ export class WorkspaceManager {
 
     async rollbackTransaction(): Promise<void> {
         if (!this.transactionBackupPath) {
-            console.warn('No transaction backup to restore');
+            Logger.warn('No transaction backup to restore');
             return;
         }
 
@@ -211,7 +211,7 @@ export class WorkspaceManager {
             await this.app.vault.adapter.write('.obsidian/workspaces.json', backupContent);
             this.transactionBackupPath = null;
         } catch (error) {
-            console.error('Failed to rollback transaction:', error);
+            Logger.error('Failed to rollback transaction:', error);
             throw new Error(`Failed to rollback: ${(error as Error).message}`);
         }
     }
@@ -339,10 +339,8 @@ export class WorkspaceManager {
     }
 
     private async pruneOldBackups(): Promise<void> {
-        // @ts-ignore
-        const backupFolder = this.plugin.settings.backupLocation || '.obsidian/backups';
-        // @ts-ignore
-        const maxBackups = this.plugin.settings.maxBackups || 10;
+        const backupFolder = this.settings.backupLocation || '.obsidian/backups';
+        const maxBackups = this.settings.maxBackups || 10;
 
         try {
             const { files } = await this.app.vault.adapter.list(backupFolder);
@@ -363,7 +361,7 @@ export class WorkspaceManager {
                 }
             }
         } catch (error) {
-            console.warn('Failed to prune old backups:', error);
+            Logger.warn('Failed to prune old backups:', error);
         }
     }
 }

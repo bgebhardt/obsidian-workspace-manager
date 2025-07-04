@@ -1,6 +1,7 @@
 import { App, Modal, Setting, Notice } from 'obsidian';
 import { WorkspaceManager } from './WorkspaceManager';
 import { TabInfo } from './types';
+import { Logger } from './Logger';
 
 export class WorkspaceManagerModal extends Modal {
     private sourceWorkspace: string = '';
@@ -22,6 +23,7 @@ export class WorkspaceManagerModal extends Modal {
 
         const workspacesData = await this.workspaceManager.getWorkspaces();
         const workspaceNames = Object.keys(workspacesData.workspaces);
+        Logger.info('Workspaces found:', workspaceNames);
 
         if (workspaceNames.length < 1) {
             contentEl.createEl('p', { text: 'No workspaces found to manage.' });
