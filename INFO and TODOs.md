@@ -2,6 +2,16 @@
 
 Place to hold notes and future todos for the project.
 
+# Status 07-04-2025
+
+So it successfully writes to the workspaces.json and if immediately after the change I close and reopen the vault the workspace that wasn't loaded will be changed.
+
+The workspace that was open is automatically saved.
+
+I workaround would be to make a "Dummy" workspace active and move between spaces.
+
+
+
 # Debounce info
 
 TODO: need to add debounce to save calls likely.
