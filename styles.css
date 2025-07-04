@@ -6,3 +6,47 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+.workspace-list, .file-list {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 5px;
+}
+
+.workspace-item, .file-item {
+    padding: 5px;
+    margin: 2px 0;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.workspace-item:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.workspace-item.selected {
+    background-color: var(--background-modifier-accent);
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.file-path {
+    color: var(--text-muted);
+    font-size: 0.9em;
+}
+
+.controls {
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}

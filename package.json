@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "workspace-manager",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Easily manage and reorganize files across your Obsidian workspaces with a visual interface.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
