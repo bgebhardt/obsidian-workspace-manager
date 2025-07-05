@@ -392,7 +392,7 @@ export class WorkspaceManager {
                 const filesToRemove = backupFiles.slice(maxBackups);
                 Logger.debug('Files to remove:', filesToRemove);
                 for (const file of filesToRemove) {
-                    await this.app.vault.adapter.remove(`${backupFolder}/${file}`);
+                    await this.app.vault.adapter.remove(file);
                 }
             }
         } catch (error) {
