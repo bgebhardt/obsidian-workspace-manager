@@ -1,213 +1,174 @@
 import { WorkspaceManager } from '../src/WorkspaceManager';
+import { App, Notice, TFile, Workspace, WorkspaceLeaf, FileView } from 'obsidian';
+import { WorkspaceManagerSettings, DEFAULT_SETTINGS } from '../src/types';
 
+// Mock Obsidian's API
 jest.mock('obsidian', () => ({
     Notice: jest.fn(),
-    Plugin: jest.fn(),
-    App: jest.fn()
+    App: jest.fn(),
+    TFile: jest.fn(),
+    Workspace: jest.fn(),
+    WorkspaceLeaf: jest.fn(),
+    FileView: jest.fn()
 }), { virtual: true });
 
 describe('WorkspaceManager', () => {
     let workspaceManager: WorkspaceManager;
     let mockApp: any;
-    let mockPlugin: any;
+    let mockSettings: WorkspaceManagerSettings;
 
     beforeEach(() => {
-        // Setup mock app and plugin
+        // Reset mocks before each test
+        jest.clearAllMocks();
+
+        // Mock settings
+        mockSettings = { ...DEFAULT_SETTINGS, debug: true };
+
+        // Mock the core App object
         mockApp = {
-            vault: {
-                adapter: {
-                    read: jest.fn(),
-                    write: jest.fn(),
-                    exists: jest.fn(),
-                    remove: jest.fn(),
-                    rename: jest.fn(),
-                    mkdir: jest.fn(),
-                    list: jest.fn()
-                }
-            }
-        };
-
-        mockPlugin = {
-            settings: {
-                backupLocation: '.obsidian/backups',
-                maxBackups: 10
-            }
-        };
-
-        workspaceManager = new WorkspaceManager(mockApp as any, mockPlugin as any);
-    });
-
-    describe('getWorkspaces', () => {
-        it('should parse workspaces.json correctly', async () => {
-            // Mock the read function to return a sample workspaces.json
-            mockApp.vault.adapter.read.mockResolvedValue(JSON.stringify({
-                workspaces: {
-                    Test1: { main: { id: '1', type: 'split', children: [] } },
-                    Test2: { main: { id: '2', type: 'split', children: [] } }
-                },
-                active: 'Test1'
-            }));
-
-            const result = await workspaceManager.getWorkspaces();
-
-            expect(result).toHaveProperty('workspaces');
-            expect(result.workspaces).toHaveProperty('Test1');
-            expect(result.workspaces).toHaveProperty('Test2');
-            expect(result.active).toBe('Test1');
-        });
-
-        it('should handle errors when reading workspaces.json', async () => {
-            // Mock the read function to throw an error
-            mockApp.vault.adapter.read.mockRejectedValue(new Error('File not found'));
-
-            const result = await workspaceManager.getWorkspaces();
-
-            expect(result).toHaveProperty('workspaces');
-            expect(Object.keys(result.workspaces)).toHaveLength(0);
-            expect(result.active).toBe('');
-        });
-    });
-
-    describe('extractTabsFromWorkspace', () => {
-        it('should extract tabs from a workspace', () => {
-            const workspace = {
-                main: {
-                    id: 'main',
-                    type: 'split',
-                    children: [
-                        {
-                            id: 'tabs1',
-                            type: 'tabs',
-                            children: [
-                                {
-                                    id: 'leaf1',
-                                    type: 'leaf',
-                                    state: {
-                                        type: 'markdown',
-                                        state: {
-                                            file: 'test.md',
-                                            mode: 'source'
-                                        },
-                                        title: 'Test'
+            internalPlugins: {
+                plugins: {
+                    workspaces: {
+                        enabled: true,
+                        instance: {
+                            workspaces: {
+                                'Workspace 1': {
+                                    main: {
+                                        type: 'split',
+                                        children: [
+                                            {
+                                                type: 'leaf',
+                                                state: {
+                                                    type: 'markdown',
+                                                    state: {
+                                                        file: 'file1.md'
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                type: 'leaf',
+                                                state: {
+                                                    type: 'markdown',
+                                                    state: {
+                                                        file: 'file2.md'
+                                                    }
+                                                }
+                                            }
+                                        ]
                                     }
-                                }
-                            ]
+                                },
+                                'Workspace 2': {}
+                            },
+                            saveWorkspaces: jest.fn().mockResolvedValue(undefined),
+                            loadWorkspace: jest.fn().mockResolvedValue(undefined),
+                            saveWorkspace: jest.fn().mockResolvedValue(undefined)
                         }
-                    ]
+                    }
+                }
+            },
+            workspace: {
+                activeLeaf: {
+                    getDisplayText: jest.fn().mockReturnValue('Current Workspace')
                 },
-                active: 'leaf1',
-                mtime: '2023-01-01T00:00:00Z'
-            };
+                getLeavesOfType: jest.fn().mockReturnValue([]),
+                iterateAllLeaves: jest.fn(),
+                getLeaf: jest.fn().mockReturnValue({
+                    openFile: jest.fn().mockResolvedValue(undefined)
+                })
+            },
+            vault: {
+                getAbstractFileByPath: jest.fn()
+            }
+        };
 
-            const tabs = workspaceManager.extractTabsFromWorkspace(workspace as any);
+        workspaceManager = new WorkspaceManager(mockApp as App, mockSettings);
+    });
 
-            expect(tabs).toHaveLength(1);
-            expect(tabs[0].id).toBe('leaf1');
-            expect(tabs[0].filePath).toBe('test.md');
-            expect(tabs[0].title).toBe('Test');
-            expect(tabs[0].type).toBe('markdown');
+    describe('isPluginEnabled', () => {
+        it('should return true if the workspaces plugin is enabled', () => {
+            expect(workspaceManager.isPluginEnabled()).toBe(true);
+        });
+
+        it('should return false and show a notice if the plugin is disabled', () => {
+            mockApp.internalPlugins.plugins.workspaces.enabled = false;
+            expect(workspaceManager.isPluginEnabled()).toBe(false);
+            expect(Notice).toHaveBeenCalledWith('Workspaces plugin is not enabled');
         });
     });
 
-    describe('moveTabsBetweenWorkspaces', () => {
-        let mockWorkspacesData: any;
-
-        beforeEach(() => {
-            mockWorkspacesData = {
-                workspaces: {
-                    'Source': {
-                        main: {
-                            id: 'main-source', type: 'split', children: [
-                                {
-                                    id: 'tabs-source', type: 'tabs', children: [
-                                        { id: 'leaf1', type: 'leaf', state: { state: { file: 'file1.md' } } }
-                                    ]
-                                }
-                            ]
-                        }
-                    },
-                    'Target': {
-                        main: {
-                            id: 'main-target', type: 'split', children: [
-                                {
-                                    id: 'tabs-target', type: 'tabs', children: [
-                                        { id: 'leaf2', type: 'leaf', state: { state: { file: 'file2.md' } } }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                },
-                active: 'Source'
-            };
-            mockApp.vault.adapter.read.mockResolvedValue(JSON.stringify(mockWorkspacesData));
-            mockApp.vault.adapter.exists.mockResolvedValue(true);
-            mockApp.vault.adapter.list.mockResolvedValue({ files: [] });
+    describe('getWorkspaceList', () => {
+        it('should return a list of workspace names', () => {
+            const list = workspaceManager.getWorkspaceList();
+            expect(list).toEqual(['Workspace 1', 'Workspace 2']);
         });
 
-        it('should move tabs from source to target workspace', async () => {
-            const success = await workspaceManager.moveTabsBetweenWorkspaces('Source', 'Target', ['leaf1']);
-
-            expect(success).toBe(true);
-            expect(mockApp.vault.adapter.write).toHaveBeenCalled();
-
-            const writtenData = JSON.parse(mockApp.vault.adapter.write.mock.calls[0][1]);
-            const sourceWorkspace = writtenData.workspaces['Source'];
-            const targetWorkspace = writtenData.workspaces['Target'];
-
-            expect(sourceWorkspace.main.children[0].children).toHaveLength(0);
-            expect(targetWorkspace.main.children[0].children).toHaveLength(2);
-            expect(targetWorkspace.main.children[0].children.find((t: any) => t.id === 'leaf1')).toBeDefined();
-        });
-
-        it('should return false and rollback on error', async () => {
-            mockApp.vault.adapter.write.mockRejectedValue(new Error('Write failed'));
-
-            const success = await workspaceManager.moveTabsBetweenWorkspaces('Source', 'Target', ['leaf1']);
-
-            expect(success).toBe(false);
-            // Check if rollback was called, which reads the backup
-            expect(mockApp.vault.adapter.read).toHaveBeenCalledWith('.obsidian/backups/workspaces-backup-some-timestamp.json');
+        it('should return an empty list if the plugin is disabled', () => {
+            mockApp.internalPlugins.plugins.workspaces.enabled = false;
+            const list = workspaceManager.getWorkspaceList();
+            expect(list).toEqual([]);
         });
     });
 
-    describe('deleteTabsFromWorkspace', () => {
-        let mockWorkspacesData: any;
-
-        beforeEach(() => {
-            mockWorkspacesData = {
-                workspaces: {
-                    'MyWorkspace': {
-                        main: {
-                            id: 'main', type: 'split', children: [
-                                {
-                                    id: 'tabs', type: 'tabs', children: [
-                                        { id: 'leaf1', type: 'leaf', state: { state: { file: 'file1.md' } } },
-                                        { id: 'leaf2', type: 'leaf', state: { state: { file: 'file2.md' } } }
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                },
-                active: 'MyWorkspace'
-            };
-            mockApp.vault.adapter.read.mockResolvedValue(JSON.stringify(mockWorkspacesData));
-            mockApp.vault.adapter.exists.mockResolvedValue(true);
-            mockApp.vault.adapter.list.mockResolvedValue({ files: [] });
+    describe('getFilesInWorkspace', () => {
+        it('should extract the list of files from the workspace data', () => {
+            const files = workspaceManager.getFilesInWorkspace('Workspace 1');
+            expect(files).toEqual(['file1.md', 'file2.md']);
         });
 
-        it('should delete tabs from a workspace', async () => {
-            const success = await workspaceManager.deleteTabsFromWorkspace('MyWorkspace', ['leaf1']);
+        it('should return an empty array for a workspace that does not exist', () => {
+            const files = workspaceManager.getFilesInWorkspace('Non-existent');
+            expect(files).toEqual([]);
+        });
+    });
 
-            expect(success).toBe(true);
-            expect(mockApp.vault.adapter.write).toHaveBeenCalled();
+    describe('reorganizeWorkspace', () => {
+        it('should load, modify, and save the workspace', async () => {
+            const filesToAdd = ['new_file.md'];
+            const filesToRemove = ['old_file.md'];
 
-            const writtenData = JSON.parse(mockApp.vault.adapter.write.mock.calls[0][1]);
-            const workspace = writtenData.workspaces['MyWorkspace'];
+            // Mock the leaf iteration
+            const mockLeaf = {
+                view: { file: { path: 'old_file.md' } },
+                detach: jest.fn()
+            };
+            mockApp.workspace.iterateAllLeaves.mockImplementation((callback: (leaf: any) => void) => {
+                callback(mockLeaf);
+            });
 
-            expect(workspace.main.children[0].children).toHaveLength(1);
-            expect(workspace.main.children[0].children.find((t: any) => t.id === 'leaf1')).toBeUndefined();
+            // Mock file lookup
+            mockApp.vault.getAbstractFileByPath.mockReturnValue(new TFile());
+
+            await workspaceManager.reorganizeWorkspace('Workspace 1', filesToAdd, filesToRemove);
+
+            expect(mockApp.internalPlugins.plugins.workspaces.instance.loadWorkspace).toHaveBeenCalledWith('Workspace 1');
+            expect(mockLeaf.detach).toHaveBeenCalled();
+            expect(mockApp.workspace.getLeaf).toHaveBeenCalledWith(true);
+            expect(mockApp.internalPlugins.plugins.workspaces.instance.saveWorkspace).toHaveBeenCalledWith('Workspace 1');
+            expect(Notice).toHaveBeenCalledWith('Workspace "Workspace 1" has been updated.');
+        });
+    });
+
+    describe('deleteWorkspace', () => {
+        it('should delete a workspace if it exists', async () => {
+            await workspaceManager.deleteWorkspace('Workspace 1');
+            expect(mockApp.internalPlugins.plugins.workspaces.instance.saveWorkspaces).toHaveBeenCalled();
+            expect(Notice).toHaveBeenCalledWith('Workspace "Workspace 1" deleted.');
+        });
+
+        it('should show a notice if the workspace does not exist', async () => {
+            await workspaceManager.deleteWorkspace('Non-existent');
+            expect(Notice).toHaveBeenCalledWith('Workspace "Non-existent" not found.');
+        });
+    });
+
+    describe('renameWorkspace', () => {
+        it('should load, save with a new name, and delete the old workspace', async () => {
+            await workspaceManager.renameWorkspace('Workspace 1', 'New Name');
+
+            expect(mockApp.internalPlugins.plugins.workspaces.instance.loadWorkspace).toHaveBeenCalledWith('Workspace 1');
+            expect(mockApp.internalPlugins.plugins.workspaces.instance.saveWorkspace).toHaveBeenCalledWith('New Name');
+            expect(mockApp.internalPlugins.plugins.workspaces.instance.saveWorkspaces).toHaveBeenCalled();
+            expect(Notice).toHaveBeenCalledWith('Workspace renamed from "Workspace 1" to "New Name".');
         });
     });
 });

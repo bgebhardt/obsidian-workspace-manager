@@ -1,17 +1,15 @@
 import { App, Modal, Setting, Notice } from 'obsidian';
 import { WorkspaceManager } from './WorkspaceManager';
-import { TabInfo } from './types';
 import { Logger } from './Logger';
 
 export class WorkspaceManagerModal extends Modal {
     private sourceWorkspace: string = '';
     private targetWorkspace: string = '';
-    private selectedTabs: string[] = [];
-    private workspaceManager: WorkspaceManager;
+    private selectedFiles: string[] = [];
+    private filesInSource: string[] = [];
 
-    constructor(app: App, workspaceManager: WorkspaceManager) {
+    constructor(app: App, private workspaceManager: WorkspaceManager) {
         super(app);
-        this.workspaceManager = workspaceManager;
     }
 
     async onOpen() {
@@ -21,8 +19,12 @@ export class WorkspaceManagerModal extends Modal {
 
         contentEl.createEl('h2', { text: 'Workspace Manager' });
 
-        const workspacesData = await this.workspaceManager.getWorkspaces();
-        const workspaceNames = Object.keys(workspacesData.workspaces);
+        if (!this.workspaceManager.isPluginEnabled()) {
+            contentEl.createEl('p', { text: 'The Workspaces plugin is not enabled. Please enable it in the Obsidian settings.' });
+            return;
+        }
+
+        const workspaceNames = this.workspaceManager.getWorkspaceList();
         Logger.info('Workspaces found:', workspaceNames);
 
         if (workspaceNames.length < 1) {
@@ -31,7 +33,7 @@ export class WorkspaceManagerModal extends Modal {
         }
 
         // Set default workspaces
-        this.sourceWorkspace = workspacesData.active || workspaceNames[0];
+        this.sourceWorkspace = this.app.workspace.activeLeaf?.getDisplayText() || workspaceNames[0];
         this.targetWorkspace = workspaceNames.find(name => name !== this.sourceWorkspace) || this.sourceWorkspace;
 
         // Source workspace selector
@@ -41,9 +43,10 @@ export class WorkspaceManagerModal extends Modal {
             .addDropdown(dropdown => {
                 workspaceNames.forEach(name => dropdown.addOption(name, name));
                 dropdown.setValue(this.sourceWorkspace);
-                dropdown.onChange(value => {
+                dropdown.onChange(async (value) => {
                     this.sourceWorkspace = value;
-                    this.updateTabsList();
+                    Logger.debug(`Source workspace changed to: ${value}`);
+                    await this.updateTabsList();
                 });
             });
 
@@ -56,6 +59,7 @@ export class WorkspaceManagerModal extends Modal {
                 dropdown.setValue(this.targetWorkspace);
                 dropdown.onChange(value => {
                     this.targetWorkspace = value;
+                    Logger.debug(`Target workspace changed to: ${value}`);
                 });
             });
 
@@ -67,106 +71,108 @@ export class WorkspaceManagerModal extends Modal {
 
         buttonContainer.createEl('button', { text: 'Move Selected', cls: 'mod-cta' })
             .addEventListener('click', async () => {
+                Logger.debug('Move button clicked');
                 if (this.sourceWorkspace === this.targetWorkspace) {
                     new Notice('Source and target workspaces must be different.');
+                    Logger.warn('Move failed: Source and target workspaces are the same.');
                     return;
                 }
-                if (this.selectedTabs.length === 0) {
-                    new Notice('No tabs selected to move.');
+                if (this.selectedFiles.length === 0) {
+                    new Notice('No files selected to move.');
+                    Logger.warn('Move failed: No files selected.');
                     return;
                 }
-                const success = await this.workspaceManager.moveTabsBetweenWorkspaces(
-                    this.sourceWorkspace,
-                    this.targetWorkspace,
-                    this.selectedTabs
-                );
-                if (success) {
-                    new Notice(`Moved ${this.selectedTabs.length} tabs to ${this.targetWorkspace}.`);
-                    this.updateTabsList();
-                }
+                
+                Logger.debug(`Moving ${this.selectedFiles.length} files from ${this.sourceWorkspace} to ${this.targetWorkspace}`);
+                // Move files by removing from source and adding to target
+                await this.workspaceManager.reorganizeWorkspace(this.sourceWorkspace, [], this.selectedFiles);
+                await this.workspaceManager.reorganizeWorkspace(this.targetWorkspace, this.selectedFiles, []);
+
+                new Notice(`Moved ${this.selectedFiles.length} files to ${this.targetWorkspace}.`);
+                await this.updateTabsList();
             });
 
         buttonContainer.createEl('button', { text: 'Copy Selected' })
             .addEventListener('click', async () => {
+                Logger.debug('Copy button clicked');
                 if (this.sourceWorkspace === this.targetWorkspace) {
                     new Notice('Source and target workspaces must be different.');
+                    Logger.warn('Copy failed: Source and target workspaces are the same.');
                     return;
                 }
-                if (this.selectedTabs.length === 0) {
-                    new Notice('No tabs selected to copy.');
+                if (this.selectedFiles.length === 0) {
+                    new Notice('No files selected to copy.');
+                    Logger.warn('Copy failed: No files selected.');
                     return;
                 }
-                const success = await this.workspaceManager.copyTabsBetweenWorkspaces(
-                    this.sourceWorkspace,
-                    this.targetWorkspace,
-                    this.selectedTabs
-                );
-                if (success) {
-                    new Notice(`Copied ${this.selectedTabs.length} tabs to ${this.targetWorkspace}.`);
-                    this.updateTabsList();
-                }
+
+                Logger.debug(`Copying ${this.selectedFiles.length} files from ${this.sourceWorkspace} to ${this.targetWorkspace}`);
+                // Copy files by adding to target
+                await this.workspaceManager.reorganizeWorkspace(this.targetWorkspace, this.selectedFiles, []);
+
+                new Notice(`Copied ${this.selectedFiles.length} files to ${this.targetWorkspace}.`);
+                await this.updateTabsList();
             });
 
         buttonContainer.createEl('button', { text: 'Delete Selected' })
             .addEventListener('click', async () => {
-                if (this.selectedTabs.length === 0) {
-                    new Notice('No tabs selected to delete.');
+                Logger.debug('Delete button clicked');
+                if (this.selectedFiles.length === 0) {
+                    new Notice('No files selected to delete.');
+                    Logger.warn('Delete failed: No files selected.');
                     return;
                 }
-                // In a later phase, we'll add a confirmation dialog
-                const success = await this.workspaceManager.deleteTabsFromWorkspace(
-                    this.sourceWorkspace,
-                    this.selectedTabs
-                );
-                if (success) {
-                    new Notice(`Deleted ${this.selectedTabs.length} tabs from ${this.sourceWorkspace}.`);
-                    this.updateTabsList();
-                }
+                
+                Logger.debug(`Deleting ${this.selectedFiles.length} files from ${this.sourceWorkspace}`);
+                // Delete files from source
+                await this.workspaceManager.reorganizeWorkspace(this.sourceWorkspace, [], this.selectedFiles);
+
+                new Notice(`Deleted ${this.selectedFiles.length} files from ${this.sourceWorkspace}.`);
+                await this.updateTabsList();
             });
 
         // Initial tabs list
-        this.updateTabsList();
+        await this.updateTabsList();
     }
 
     async updateTabsList() {
+        Logger.debug(`Updating tabs list for workspace: ${this.sourceWorkspace}`);
         const tabsContainer = this.contentEl.querySelector('.workspace-manager-tabs');
-        if (!tabsContainer) return;
+        if (!tabsContainer) {
+            Logger.warn('Tabs container not found in modal.');
+            return;
+        }
 
         tabsContainer.empty();
-        this.selectedTabs = [];
+        this.selectedFiles = [];
 
-        const workspacesData = await this.workspaceManager.getWorkspaces();
-        const workspace = workspacesData.workspaces[this.sourceWorkspace];
+        this.filesInSource = await this.workspaceManager.getFilesInWorkspace(this.sourceWorkspace);
+        Logger.debug('Files in source workspace:', this.filesInSource);
 
-        if (!workspace) {
-            tabsContainer.createEl('p', { text: 'Workspace not found.' });
+        if (this.filesInSource.length === 0) {
+            tabsContainer.createEl('p', { text: 'No open files in this workspace.' });
             return;
         }
 
-        const tabs = this.workspaceManager.extractTabsFromWorkspace(workspace);
-
-        if (tabs.length === 0) {
-            tabsContainer.createEl('p', { text: 'No open tabs in this workspace.' });
-            return;
-        }
-
-        tabs.forEach((tab: TabInfo) => {
+        this.filesInSource.forEach((filePath: string) => {
             new Setting(tabsContainer as HTMLElement)
-                .setName(tab.title)
-                .setDesc(tab.filePath)
+                .setName(filePath.split('/').pop() || filePath)
+                .setDesc(filePath)
                 .addToggle(toggle => {
                     toggle.onChange(value => {
                         if (value) {
-                            this.selectedTabs.push(tab.id);
+                            this.selectedFiles.push(filePath);
                         } else {
-                            this.selectedTabs = this.selectedTabs.filter(id => id !== tab.id);
+                            this.selectedFiles = this.selectedFiles.filter(path => path !== filePath);
                         }
+                        Logger.debug('Selected files:', this.selectedFiles);
                     });
                 });
         });
     }
 
     onClose() {
+        Logger.debug('Closing Workspace Manager modal');
         const { contentEl } = this;
         contentEl.empty();
     }

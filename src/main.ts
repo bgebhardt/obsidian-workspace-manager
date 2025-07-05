@@ -18,7 +18,9 @@ export default class WorkspaceManagerPlugin extends Plugin {
 
         // Add ribbon icon
         this.addRibbonIcon('folder', 'Workspace Manager', () => {
-            new WorkspaceManagerModal(this.app, this.workspaceManager).open();
+            if (this.workspaceManager.isPluginEnabled()) {
+                new WorkspaceManagerModal(this.app, this.workspaceManager).open();
+            }
         });
         Logger.info('Added ribbon icon for Workspace Manager');
 
@@ -28,7 +30,9 @@ export default class WorkspaceManagerPlugin extends Plugin {
             name: 'Open Workspace Manager',
             callback: () => {
                 Logger.info('Opening Workspace Manager Modal');
-                new WorkspaceManagerModal(this.app, this.workspaceManager).open();
+                if (this.workspaceManager.isPluginEnabled()) {
+                    new WorkspaceManagerModal(this.app, this.workspaceManager).open();
+                }
             }
         });
         Logger.info('Added command: open-workspace-manager');
