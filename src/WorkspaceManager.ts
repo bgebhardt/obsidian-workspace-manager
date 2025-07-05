@@ -164,6 +164,56 @@ export class WorkspaceManager {
         }
     }
 
+    async copyTabsBetweenWorkspaces(
+        sourceWorkspaceName: string,
+        targetWorkspaceName: string,
+        tabIds: string[]
+    ): Promise<boolean> {
+        try {
+            Logger.debug(`Copying tabs from ${sourceWorkspaceName} to ${targetWorkspaceName}:`, tabIds);
+            await this.beginTransaction();
+
+            const workspacesData = await this.getWorkspaces();
+
+            if (!workspacesData.workspaces[sourceWorkspaceName] ||
+                !workspacesData.workspaces[targetWorkspaceName]) {
+                throw new Error('Source or target workspace not found');
+            }
+
+            const sourceWorkspace = workspacesData.workspaces[sourceWorkspaceName];
+            const targetWorkspace = workspacesData.workspaces[targetWorkspaceName];
+
+            const tabsToCopy: LayoutComponent[] = [];
+
+            for (const tabId of tabIds) {
+                const tabInfo = this.findTabInWorkspace(sourceWorkspace, tabId);
+                if (tabInfo) {
+                    tabsToCopy.push(tabInfo.tab);
+                } else {
+                    Logger.warn(`Tab ${tabId} not found in workspace ${sourceWorkspaceName}`);
+                }
+            }
+            Logger.debug('Tabs to copy:', tabsToCopy);
+
+            for (const tab of tabsToCopy) {
+                this.addTabToWorkspace(targetWorkspace, tab);
+            }
+
+            targetWorkspace.mtime = new Date().toISOString();
+
+            await this.saveWorkspaces(workspacesData);
+
+            await this.commitTransaction();
+
+            return true;
+        } catch (error) {
+            await this.rollbackTransaction();
+            Logger.error('Failed to copy tabs:', error);
+            new Notice(`Failed to copy tabs: ${(error as Error).message}`);
+            return false;
+        }
+    }
+
     async deleteTabsFromWorkspace(workspaceName: string, tabIds: string[]): Promise<boolean> {
         try {
             Logger.debug(`Deleting tabs from ${workspaceName}:`, tabIds);

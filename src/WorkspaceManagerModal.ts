@@ -86,6 +86,27 @@ export class WorkspaceManagerModal extends Modal {
                 }
             });
 
+        buttonContainer.createEl('button', { text: 'Copy Selected' })
+            .addEventListener('click', async () => {
+                if (this.sourceWorkspace === this.targetWorkspace) {
+                    new Notice('Source and target workspaces must be different.');
+                    return;
+                }
+                if (this.selectedTabs.length === 0) {
+                    new Notice('No tabs selected to copy.');
+                    return;
+                }
+                const success = await this.workspaceManager.copyTabsBetweenWorkspaces(
+                    this.sourceWorkspace,
+                    this.targetWorkspace,
+                    this.selectedTabs
+                );
+                if (success) {
+                    new Notice(`Copied ${this.selectedTabs.length} tabs to ${this.targetWorkspace}.`);
+                    this.updateTabsList();
+                }
+            });
+
         buttonContainer.createEl('button', { text: 'Delete Selected' })
             .addEventListener('click', async () => {
                 if (this.selectedTabs.length === 0) {

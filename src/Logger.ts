@@ -1,5 +1,5 @@
 export class Logger {
-    private static isDebug: boolean = false;
+    private static isDebug: boolean = true;
 
     static setDebug(isDebug: boolean) {
         this.isDebug = isDebug;
