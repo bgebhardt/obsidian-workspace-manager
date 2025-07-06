@@ -12,6 +12,7 @@ interface ObsidianVault {
 const obsidianStatusEl = document.querySelector<HTMLDivElement>('#obsidian-status')!;
 const vaultSelectorEl = document.querySelector<HTMLSelectElement>('#vault-selector')!;
 const openVaultLinkEl = document.querySelector<HTMLAnchorElement>('#open-vault-link')!;
+const reloadVaultButtonEl = document.querySelector<HTMLButtonElement>('#reload-vault-button')!;
 const sourceWorkspaceListEl = document.querySelector<HTMLDivElement>('#source-workspace-list')!;
 const targetWorkspaceListEl = document.querySelector<HTMLDivElement>('#target-workspace-list')!;
 const tabListEl = document.querySelector<HTMLTableSectionElement>('#tab-list')!;
@@ -175,9 +176,13 @@ function populateWorkspaceLists(data: WorkspacesData) {
   }
 
   const createWorkspaceItem = (name: string, list: 'source' | 'target') => {
+    const workspace = data.workspaces[name];
+    const tabCount = extractTabsFromWorkspace(workspace).length;
+
     const div = document.createElement('div');
     div.className = 'workspace-item';
-    div.textContent = name;
+    div.textContent = `${name} (${tabCount})`;
+    div.dataset.workspaceName = name;
     div.addEventListener('click', () => {
       const listEl = list === 'source' ? sourceWorkspaceListEl : targetWorkspaceListEl;
       // Allow only one selection per list
@@ -274,8 +279,8 @@ async function handleTabOperation(operation: 'move' | 'copy') {
     return;
   }
 
-  const sourceWorkspace = selectedSourceEl.textContent || '';
-  const targetWorkspace = selectedTargetEl.textContent || '';
+  const sourceWorkspace = (selectedSourceEl as HTMLElement).dataset.workspaceName || '';
+  const targetWorkspace = (selectedTargetEl as HTMLElement).dataset.workspaceName || '';
   if (sourceWorkspace === targetWorkspace) {
     alert('Source and target workspaces cannot be the same.');
     return;
@@ -325,7 +330,7 @@ async function handleDeleteOperation() {
     return;
   }
 
-  const workspaceName = selectedSourceEl.textContent || '';
+  const workspaceName = (selectedSourceEl as HTMLElement).dataset.workspaceName || '';
   const selectedTabIds = Array.from(tabListEl.querySelectorAll<HTMLInputElement>('input[type="checkbox"]:checked'))
     .map(cb => cb.value);
 
@@ -376,11 +381,20 @@ function main() {
     if (selectedVaultPath && vaultName) {
       openVaultLinkEl.href = `obsidian://open?vault=${encodeURIComponent(vaultName)}`;
       openVaultLinkEl.hidden = false;
+      reloadVaultButtonEl.hidden = false;
     } else {
       openVaultLinkEl.hidden = true;
+      reloadVaultButtonEl.hidden = true;
     }
 
     getWorkspaces(selectedVaultPath);
+  });
+
+  reloadVaultButtonEl.addEventListener('click', () => {
+    const selectedVaultPath = vaultSelectorEl.value;
+    if (selectedVaultPath) {
+      getWorkspaces(selectedVaultPath);
+    }
   });
 
   copyButtonEl.addEventListener('click', () => handleTabOperation('copy'));

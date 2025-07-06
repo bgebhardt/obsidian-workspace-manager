@@ -36,6 +36,11 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .button-link {
   background-color: #e0e7ff;
   color: #4338ca;
