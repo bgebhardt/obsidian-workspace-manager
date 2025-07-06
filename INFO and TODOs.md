@@ -10,7 +10,98 @@ The workspace that was open is automatically saved.
 
 I workaround would be to make a "Dummy" workspace active and move between spaces.
 
+this.app.internalPlugins.plugins.workspaces 
 
+this.app.internalPlugins.plugins.workspaces.instance - can use this object to access workspaces. It has the following functions.
+
+```javascript
+// this.app.internalPlugins.plugins.workspaces.instance functions
+[
+    "saveWorkspace",
+    "deleteWorkspace",
+    "loadWorkspace",
+    "constructor",
+    "init",
+    "onEnable",
+    "onDisable",
+    "onOpenModal",
+    "onLoad",
+    "onSave",
+    "onSaveAndLoad",
+    "setActiveWorkspace",
+    "saveData",
+    "__defineGetter__",
+    "__defineSetter__",
+    "hasOwnProperty",
+    "__lookupGetter__",
+    "__lookupSetter__",
+    "isPrototypeOf",
+    "propertyIsEnumerable",
+    "toString",
+    "valueOf",
+    "toLocaleString"
+]
+
+// For example to load a workspace call:
+
+this.app.internalPlugins.plugins.workspaces.instance.loadWorkspace("Default")
+undefined
+this.app.internalPlugins.plugins.workspaces.instance.loadWorkspace("Dummy")
+
+```
+
+
+- this.app.internalPlugins.plugins.workspaces.instance.activeWorkspace - gets a string with the active workspace
+- this.app.internalPlugins.plugins.workspaces.instance.workspaces - gets an array where you can access all current workspaces.
+
+Use this.app.internalPlugins.plugins.workspaces.instance.workspaces to 
+
+We want to use loadWorkspace and saveWorkspace.
+
+WorkspaceManager.worksworkspacePlugin() is the same as this.app.internalPlugins.plugins.workspaces
+
+
+
+Functions associated with this.app.internalPlugins.plugins.workspaces 
+[
+    "onConfigFileChange",
+    "constructor",
+    "init",
+    "enable",
+    "disable",
+    "getModifiedTime",
+    "handleConfigFileChange",
+    "loadData",
+    "saveData",
+    "deleteData",
+    "registerViewType",
+    "registerGlobalCommand",
+    "registerRibbonItem",
+    "registerStatusBarItem",
+    "registerMobileFileInfo",
+    "addSettingTab",
+    "load",
+    "onload",
+    "unload",
+    "onunload",
+    "addChild",
+    "removeChild",
+    "register",
+    "registerEvent",
+    "registerDomEvent",
+    "registerScopeEvent",
+    "registerInterval",
+    "__defineGetter__",
+    "__defineSetter__",
+    "hasOwnProperty",
+    "__lookupGetter__",
+    "__lookupSetter__",
+    "isPrototypeOf",
+    "propertyIsEnumerable",
+    "toString",
+    "valueOf",
+    "toLocaleString"
+]
 
 # Debounce info
 
