@@ -19,13 +19,24 @@
         </div>
 
         <main class="workspace-editor">
-          <aside class="source-workspaces">
-            <h2>2. Source Workspaces</h2>
-            <div id="source-workspace-list"></div>
-          </aside>
+          <div class="workspace-selectors">
+            <aside class="source-workspaces">
+              <h2>2. Source Workspace</h2>
+              <div id="source-workspace-list"></div>
+            </aside>
+            <aside class="target-workspaces">
+              <h2>3. Target Workspace</h2>
+              <div id="target-workspace-list"></div>
+            </aside>
+          </div>
+
+          <div class="action-buttons">
+            <button id="copy-button">Copy Tabs</button>
+            <button id="move-button">Move Tabs</button>
+          </div>
 
           <section class="tab-selection">
-            <h2>3. Select Tabs</h2>
+            <h2>4. Select Tabs</h2>
             <table id="tab-table">
               <thead>
                 <tr>
@@ -39,17 +50,6 @@
             </table>
           </section>
         </main>
-
-        <footer class="actions">
-          <div class="target-selection">
-            <h2>4. Select Target Workspace</h2>
-            <select id="target-workspace-selector" aria-label="Select Target Workspace"></select>
-          </div>
-          <div class="action-buttons">
-            <button id="copy-button">Copy Tabs</button>
-            <button id="move-button">Move Tabs</button>
-          </div>
-        </footer>
       </div>
     </div>
     <script type="module" src="/src/main.ts"></script>

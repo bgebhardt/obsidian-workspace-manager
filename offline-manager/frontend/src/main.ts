@@ -12,7 +12,7 @@ interface ObsidianVault {
 const obsidianStatusEl = document.querySelector<HTMLDivElement>('#obsidian-status')!;
 const vaultSelectorEl = document.querySelector<HTMLSelectElement>('#vault-selector')!;
 const sourceWorkspaceListEl = document.querySelector<HTMLDivElement>('#source-workspace-list')!;
-const targetWorkspaceSelectorEl = document.querySelector<HTMLSelectElement>('#target-workspace-selector')!;
+const targetWorkspaceListEl = document.querySelector<HTMLDivElement>('#target-workspace-list')!;
 const tabListEl = document.querySelector<HTMLTableSectionElement>('#tab-list')!;
 const copyButtonEl = document.querySelector<HTMLButtonElement>('#copy-button')!;
 const moveButtonEl = document.querySelector<HTMLButtonElement>('#move-button')!;
@@ -78,7 +78,7 @@ async function getWorkspaces(vaultPath: string) {
   if (!vaultPath) {
     // Clear workspace lists if no vault is selected
     sourceWorkspaceListEl.innerHTML = '';
-    targetWorkspaceSelectorEl.innerHTML = '';
+    targetWorkspaceListEl.innerHTML = '';
     tabListEl.innerHTML = '';
     return;
   }
@@ -128,36 +128,38 @@ function populateVaultSelector(vaults: ObsidianVault[]) {
 
 function populateWorkspaceLists(data: WorkspacesData) {
   const workspaceNames = Object.keys(data.workspaces);
-  sourceWorkspaceListEl.innerHTML = ''; // Clear previous list
-  targetWorkspaceSelectorEl.innerHTML = ''; // Clear previous list
-  tabListEl.innerHTML = ''; // Clear tabs
+  sourceWorkspaceListEl.innerHTML = '';
+  targetWorkspaceListEl.innerHTML = '';
+  tabListEl.innerHTML = '';
 
   if (workspaceNames.length === 0) {
-    sourceWorkspaceListEl.innerHTML = '<p>No workspaces found in this vault.</p>';
+    const msg = '<p>No workspaces found in this vault.</p>';
+    sourceWorkspaceListEl.innerHTML = msg;
+    targetWorkspaceListEl.innerHTML = msg;
     return;
   }
 
-  // Populate source workspace list
-  workspaceNames.forEach(name => {
+  const createWorkspaceItem = (name: string, list: 'source' | 'target') => {
     const div = document.createElement('div');
     div.className = 'workspace-item';
     div.textContent = name;
     div.addEventListener('click', () => {
-      // Highlight selected workspace
-      document.querySelectorAll('.workspace-item').forEach(el => el.classList.remove('selected'));
+      const listEl = list === 'source' ? sourceWorkspaceListEl : targetWorkspaceListEl;
+      // Allow only one selection per list
+      listEl.querySelectorAll('.workspace-item').forEach(el => el.classList.remove('selected'));
       div.classList.add('selected');
-      displayTabsForWorkspace(name);
+      
+      if (list === 'source') {
+        displayTabsForWorkspace(name);
+      }
     });
-    sourceWorkspaceListEl.appendChild(div);
-  });
+    return div;
+  };
 
-  // Populate target workspace dropdown
-  targetWorkspaceSelectorEl.innerHTML = '<option value="">-- Select Target --</option>';
+  // Populate both lists
   workspaceNames.forEach(name => {
-    const option = document.createElement('option');
-    option.value = name;
-    option.textContent = name;
-    targetWorkspaceSelectorEl.appendChild(option);
+    sourceWorkspaceListEl.appendChild(createWorkspaceItem(name, 'source'));
+    targetWorkspaceListEl.appendChild(createWorkspaceItem(name, 'target'));
   });
 }
 
@@ -229,15 +231,16 @@ function extractTabsFromWorkspace(workspace: WorkspaceLayout): TabInfo[] {
 // --- Event Handlers ---
 async function handleTabOperation(operation: 'move' | 'copy') {
   const vaultPath = vaultSelectorEl.value;
-  const targetWorkspace = targetWorkspaceSelectorEl.value;
-  const selectedSourceEl = document.querySelector('.workspace-item.selected');
-  
-  if (!vaultPath || !targetWorkspace || !selectedSourceEl) {
-    alert('Please select a vault, source workspace, and target workspace.');
+  const selectedSourceEl = sourceWorkspaceListEl.querySelector('.workspace-item.selected');
+  const selectedTargetEl = targetWorkspaceListEl.querySelector('.workspace-item.selected');
+
+  if (!vaultPath || !selectedSourceEl || !selectedTargetEl) {
+    alert('Please select a vault, a source workspace, and a target workspace.');
     return;
   }
 
   const sourceWorkspace = selectedSourceEl.textContent || '';
+  const targetWorkspace = selectedTargetEl.textContent || '';
   if (sourceWorkspace === targetWorkspace) {
     alert('Source and target workspaces cannot be the same.');
     return;

@@ -168,31 +168,6 @@ export class WorkspaceManager {
         return null;
     }
 
-    private removeTabRecursive(
-        node: LayoutComponent,
-        tabId: string
-    ): boolean {
-        if (!node.children) {
-            return false;
-        }
-
-        const tabIndex = node.children.findIndex(child => child.id === tabId);
-        if (tabIndex !== -1) {
-            node.children.splice(tabIndex, 1);
-            // If a 'tabs' container becomes empty, we could optionally remove it too, but for now, we'll leave it.
-            return true;
-        }
-
-        // Recurse into children
-        for (const child of node.children) {
-            if (this.removeTabRecursive(child, tabId)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private findFirstTabsNode(node: LayoutComponent): LayoutComponent | null {
         if (node.type === 'tabs') {
             return node;
@@ -277,9 +252,14 @@ export class WorkspaceManager {
 
             for (const tabId of tabIds) {
                 const tabInfo = this.findTabRecursive(sourceWorkspace.main, tabId, null);
-                if (tabInfo) {
-                    this.removeTabRecursive(sourceWorkspace.main, tabId);
-                    this.addTabToWorkspace(targetWorkspace, tabInfo.found);
+                // If we found the tab and its parent has a children array
+                if (tabInfo && tabInfo.parent.children) {
+                    const index = tabInfo.parent.children.findIndex(c => c.id === tabId);
+                    if (index > -1) {
+                        // Remove from source and add to target
+                        const [removedTab] = tabInfo.parent.children.splice(index, 1);
+                        this.addTabToWorkspace(targetWorkspace, removedTab);
+                    }
                 }
             }
             
@@ -314,7 +294,9 @@ export class WorkspaceManager {
             for (const tabId of tabIds) {
                 const tabInfo = this.findTabRecursive(sourceWorkspace.main, tabId, null);
                 if (tabInfo) {
-                    this.addTabToWorkspace(targetWorkspace, tabInfo.found);
+                    // Create a deep copy of the tab to avoid object reference issues.
+                    const tabToCopy = JSON.parse(JSON.stringify(tabInfo.found));
+                    this.addTabToWorkspace(targetWorkspace, tabToCopy);
                 }
             }
 
