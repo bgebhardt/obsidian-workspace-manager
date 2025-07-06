@@ -5,52 +5,17 @@ Place to hold notes and future todos for the project.
 
  # status 07-06-2025
 
-Giving up on plugin approach as I can't get it to open a new tab..
+Gave upon plugin approach as I can't get it to open a new tab..
 
-Look in offline directory.
+Have a working system running as set out in the README.md. Requires backend and front end to be running. Look in offline directory.
 
-Please now add the following features.
+TODO: Created Electron app packaging but app is not working at all; will need to debug. 
 
-1. add delete tab button next to the copy and move buttons
-2. add a button to quit obsidian (using applscript only on mac) in the warning
-3. add a button to open the source vault using Obsidian URI format
-4. add a button to open the target vault using Obsidian URI format
-5. don't allow source and target vault to be the same vault
-6. add to the warning message which vaults are currently open (mac only). Use Applescript, something like:
+Potential features
 
-tell application "System Events"
-	set obsidianWindows to name of windows of process "Obsidian"
-end tell
-
-return obsidianWindows
-
-Which might return a list of windows like this with only one window
-{"MyVault – Obsidian"}
-
-Extract vault name from that
-
-Next work items
-
-1. add delete tab button
-2. add a button to quit obsidian (using applscript only on mac)
-3. add buttons to open a vault using Obsidian URI format
-4. don't allow source and target vault to be the same vault
-5. add to the warning message which vaults are currently open (mac only). Use Applescript, something like:
-
-tell application "System Events"
-	set obsidianWindows to name of windows of process "Obsidian"
-end tell
-
-return obsidianWindows
-
-Which might return a list of windows like this with only one window
-{"MyVault – Obsidian"}
-
-Extract vault name from that
-
-4. add button to close a source vault in Obsidian. (apparently this isn't possible; work around would be to quit obsidian :( ))
-
-5. move plugin to sub folder - but will that break the plugin working?
+- add button to close a source vault in Obsidian. (apparently this isn't possible; work around would be to quit obsidian :( ))
+- move plugin to sub folder - but will that break the plugin working?
+- add more tests to the code
 
 
 # Status 07-04-2025
