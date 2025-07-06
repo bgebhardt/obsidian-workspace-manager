@@ -85,7 +85,7 @@ async function getVaults() {
   }
 }
 
-async function getWorkspaces(vaultPath: string) {
+async function getWorkspaces(vaultPath: string, selectedSource?: string | null, selectedTarget?: string | null) {
   if (!vaultPath) {
     // Clear workspace lists if no vault is selected
     sourceWorkspaceListEl.innerHTML = '';
@@ -97,13 +97,13 @@ async function getWorkspaces(vaultPath: string) {
     const response = await fetch(`/api/workspaces?vaultPath=${encodeURIComponent(vaultPath)}`);
     currentWorkspaces = await response.json();
     if (currentWorkspaces) {
-      populateWorkspaceLists(currentWorkspaces);
+      populateWorkspaceLists(currentWorkspaces, selectedSource, selectedTarget);
     }
   } catch (error) {
     console.error('Failed to fetch workspaces:', error);
     currentWorkspaces = null;
     // On error, clear the lists by passing a default empty object
-    populateWorkspaceLists({ workspaces: {}, active: '' });
+    populateWorkspaceLists({ workspaces: {}, active: '' }, null, null);
   }
 }
 
@@ -165,7 +165,7 @@ function populateVaultSelector(vaults: ObsidianVault[]) {
   }
 }
 
-function populateWorkspaceLists(data: WorkspacesData) {
+function populateWorkspaceLists(data: WorkspacesData, selectedSource?: string | null, selectedTarget?: string | null) {
   const workspaceNames = Object.keys(data.workspaces).sort((a, b) => a.localeCompare(b));
   sourceWorkspaceListEl.innerHTML = '';
   targetWorkspaceListEl.innerHTML = '';
@@ -201,8 +201,19 @@ function populateWorkspaceLists(data: WorkspacesData) {
 
   // Populate both lists
   workspaceNames.forEach(name => {
-    sourceWorkspaceListEl.appendChild(createWorkspaceItem(name, 'source'));
-    targetWorkspaceListEl.appendChild(createWorkspaceItem(name, 'target'));
+    const sourceItem = createWorkspaceItem(name, 'source');
+    const targetItem = createWorkspaceItem(name, 'target');
+
+    if (name === selectedSource) {
+      sourceItem.classList.add('selected');
+      displayTabsForWorkspace(name);
+    }
+    if (name === selectedTarget) {
+      targetItem.classList.add('selected');
+    }
+
+    sourceWorkspaceListEl.appendChild(sourceItem);
+    targetWorkspaceListEl.appendChild(targetItem);
   });
 }
 
@@ -337,7 +348,7 @@ async function handleTabOperation(operation: 'move' | 'copy') {
     if (response.ok && result.success) {
       showNotification(`Successfully ${operation}d ${selectedTabIds.length} tabs!`);
       // Refresh the workspace data to show changes
-      getWorkspaces(vaultPath);
+      getWorkspaces(vaultPath, sourceWorkspace, targetWorkspace);
     } else {
       throw new Error(result.error || 'Unknown error');
     }
@@ -385,7 +396,7 @@ async function handleDeleteOperation() {
     if (response.ok && result.success) {
       showNotification(`Successfully deleted ${selectedTabIds.length} tabs!`);
       // Refresh the workspace data to show changes
-      getWorkspaces(vaultPath);
+      getWorkspaces(vaultPath, workspaceName, null);
     } else {
       throw new Error(result.error || 'Unknown error');
     }
@@ -426,7 +437,7 @@ async function handleDeleteDuplicatesOperation() {
     if (response.ok && result.success) {
       showNotification(`Successfully deleted duplicate tabs!`);
       // Refresh the workspace data to show changes
-      getWorkspaces(vaultPath);
+      getWorkspaces(vaultPath, workspaceName, null);
     } else {
       throw new Error(result.error || 'Unknown error');
     }
