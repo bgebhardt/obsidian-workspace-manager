@@ -5,6 +5,7 @@
 # Build output
 /dist
 /frontend/dist
+/release
 
 # Logs
 npm-debug.log*
