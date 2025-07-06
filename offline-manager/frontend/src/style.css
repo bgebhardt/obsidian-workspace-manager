@@ -212,3 +212,24 @@ button.danger:hover {
 .notification.hidden {
   top: -100px;
 }
+
+.confirmation-dialog {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1.5rem;
+  border-radius: 8px;
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  z-index: 1001;
+  text-align: center;
+}
+
+.confirmation-buttons {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}

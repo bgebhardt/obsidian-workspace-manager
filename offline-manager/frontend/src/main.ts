@@ -22,6 +22,10 @@ const moveButtonEl = document.querySelector<HTMLButtonElement>('#move-button')!;
 const deleteButtonEl = document.querySelector<HTMLButtonElement>('#delete-button')!;
 const deleteDuplicatesButtonEl = document.querySelector<HTMLButtonElement>('#delete-duplicates-button')!;
 const notificationEl = document.querySelector<HTMLDivElement>('#notification')!;
+const confirmationDialogEl = document.querySelector<HTMLDivElement>('#confirmation-dialog')!;
+const confirmationMessageEl = document.querySelector<HTMLParagraphElement>('#confirmation-message')!;
+const confirmYesButtonEl = document.querySelector<HTMLButtonElement>('#confirm-yes-button')!;
+const confirmNoButtonEl = document.querySelector<HTMLButtonElement>('#confirm-no-button')!;
 
 // --- Type Definitions ---
 interface ObsidianStatus {
@@ -304,6 +308,32 @@ function showNotification(message: string, duration = 3000) {
   setTimeout(hide, duration);
 }
 
+function confirmAction(message: string): Promise<boolean> {
+  return new Promise(resolve => {
+    confirmationMessageEl.textContent = message;
+    confirmationDialogEl.hidden = false;
+
+    const cleanup = () => {
+      confirmationDialogEl.hidden = true;
+      confirmYesButtonEl.removeEventListener('click', onYes);
+      confirmNoButtonEl.removeEventListener('click', onNo);
+    };
+
+    const onYes = () => {
+      cleanup();
+      resolve(true);
+    };
+
+    const onNo = () => {
+      cleanup();
+      resolve(false);
+    };
+
+    confirmYesButtonEl.addEventListener('click', onYes);
+    confirmNoButtonEl.addEventListener('click', onNo);
+  });
+}
+
 // --- Event Handlers ---
 async function handleTabOperation(operation: 'move' | 'copy') {
   const vaultPath = vaultSelectorEl.value;
@@ -375,7 +405,8 @@ async function handleDeleteOperation() {
     return;
   }
 
-  if (!confirm(`Are you sure you want to delete ${selectedTabIds.length} tabs from the "${workspaceName}" workspace? This cannot be undone.`)) {
+  const confirmed = await confirmAction(`Are you sure you want to delete ${selectedTabIds.length} tabs from the "${workspaceName}" workspace? This cannot be undone.`);
+  if (!confirmed) {
     return;
   }
 
@@ -417,7 +448,8 @@ async function handleDeleteDuplicatesOperation() {
 
   const workspaceName = (selectedSourceEl as HTMLElement).dataset.workspaceName || '';
 
-  if (!confirm(`Are you sure you want to delete all duplicate tabs from the "${workspaceName}" workspace? This cannot be undone.`)) {
+  const confirmed = await confirmAction(`Are you sure you want to delete all duplicate tabs from the "${workspaceName}" workspace? This cannot be undone.`);
+  if (!confirmed) {
     return;
   }
 
