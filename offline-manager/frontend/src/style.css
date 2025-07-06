@@ -194,3 +194,21 @@ button.danger:hover {
   background-color: #f1b0b7;
   border-color: #ee9a9a;
 }
+
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  background-color: #213547;
+  color: white;
+  z-index: 1000;
+  cursor: pointer;
+  transition: top 0.5s ease-in-out;
+}
+
+.notification.hidden {
+  top: -100px;
+}

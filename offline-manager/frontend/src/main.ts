@@ -19,6 +19,8 @@ const tabListEl = document.querySelector<HTMLTableSectionElement>('#tab-list')!;
 const copyButtonEl = document.querySelector<HTMLButtonElement>('#copy-button')!;
 const moveButtonEl = document.querySelector<HTMLButtonElement>('#move-button')!;
 const deleteButtonEl = document.querySelector<HTMLButtonElement>('#delete-button')!;
+const deleteDuplicatesButtonEl = document.querySelector<HTMLButtonElement>('#delete-duplicates-button')!;
+const notificationEl = document.querySelector<HTMLDivElement>('#notification')!;
 
 // --- Type Definitions ---
 interface ObsidianStatus {
@@ -268,6 +270,28 @@ function extractTabsFromWorkspace(workspace: WorkspaceLayout): TabInfo[] {
   return tabs;
 }
 
+function showNotification(message: string, duration = 3000) {
+  notificationEl.textContent = message;
+  notificationEl.hidden = false;
+
+  const hide = () => {
+    notificationEl.hidden = true;
+    notificationEl.removeEventListener('click', hide);
+    document.removeEventListener('keydown', handleEscape);
+  };
+
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      hide();
+    }
+  };
+
+  notificationEl.addEventListener('click', hide);
+  document.addEventListener('keydown', handleEscape);
+
+  setTimeout(hide, duration);
+}
+
 // --- Event Handlers ---
 async function handleTabOperation(operation: 'move' | 'copy') {
   const vaultPath = vaultSelectorEl.value;
@@ -275,14 +299,14 @@ async function handleTabOperation(operation: 'move' | 'copy') {
   const selectedTargetEl = targetWorkspaceListEl.querySelector('.workspace-item.selected');
 
   if (!vaultPath || !selectedSourceEl || !selectedTargetEl) {
-    alert('Please select a vault, a source workspace, and a target workspace.');
+    showNotification('Please select a vault, a source workspace, and a target workspace.');
     return;
   }
 
   const sourceWorkspace = (selectedSourceEl as HTMLElement).dataset.workspaceName || '';
   const targetWorkspace = (selectedTargetEl as HTMLElement).dataset.workspaceName || '';
   if (sourceWorkspace === targetWorkspace) {
-    alert('Source and target workspaces cannot be the same.');
+    showNotification('Source and target workspaces cannot be the same.');
     return;
   }
 
@@ -290,7 +314,7 @@ async function handleTabOperation(operation: 'move' | 'copy') {
     .map(cb => cb.value);
 
   if (selectedTabIds.length === 0) {
-    alert('Please select at least one tab to ' + operation);
+    showNotification('Please select at least one tab to ' + operation);
     return;
   }
 
@@ -310,14 +334,14 @@ async function handleTabOperation(operation: 'move' | 'copy') {
 
     const result = await response.json();
     if (response.ok && result.success) {
-      alert(`Successfully ${operation}d ${selectedTabIds.length} tabs!`);
+      showNotification(`Successfully ${operation}d ${selectedTabIds.length} tabs!`);
       // Refresh the workspace data to show changes
       getWorkspaces(vaultPath);
     } else {
       throw new Error(result.error || 'Unknown error');
     }
   } catch (error) {
-    alert(`Failed to ${operation} tabs: ${error}`);
+    showNotification(`Failed to ${operation} tabs: ${error}`, 5000);
   }
 }
 
@@ -326,7 +350,7 @@ async function handleDeleteOperation() {
   const selectedSourceEl = sourceWorkspaceListEl.querySelector('.workspace-item.selected');
 
   if (!vaultPath || !selectedSourceEl) {
-    alert('Please select a vault and a source workspace.');
+    showNotification('Please select a vault and a source workspace.');
     return;
   }
 
@@ -335,7 +359,7 @@ async function handleDeleteOperation() {
     .map(cb => cb.value);
 
   if (selectedTabIds.length === 0) {
-    alert('Please select at least one tab to delete.');
+    showNotification('Please select at least one tab to delete.');
     return;
   }
 
@@ -358,14 +382,55 @@ async function handleDeleteOperation() {
 
     const result = await response.json();
     if (response.ok && result.success) {
-      alert(`Successfully deleted ${selectedTabIds.length} tabs!`);
+      showNotification(`Successfully deleted ${selectedTabIds.length} tabs!`);
       // Refresh the workspace data to show changes
       getWorkspaces(vaultPath);
     } else {
       throw new Error(result.error || 'Unknown error');
     }
   } catch (error) {
-    alert(`Failed to delete tabs: ${error}`);
+    showNotification(`Failed to delete tabs: ${error}`, 5000);
+  }
+}
+
+
+async function handleDeleteDuplicatesOperation() {
+  const vaultPath = vaultSelectorEl.value;
+  const selectedSourceEl = sourceWorkspaceListEl.querySelector('.workspace-item.selected');
+
+  if (!vaultPath || !selectedSourceEl) {
+    showNotification('Please select a vault and a source workspace.');
+    return;
+  }
+
+  const workspaceName = (selectedSourceEl as HTMLElement).dataset.workspaceName || '';
+
+  if (!confirm(`Are you sure you want to delete all duplicate tabs from the "${workspaceName}" workspace? This cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/workspaces/delete-duplicates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        vaultPath,
+        workspaceName,
+      }),
+    });
+
+    const result = await response.json();
+    if (response.ok && result.success) {
+      showNotification(`Successfully deleted duplicate tabs!`);
+      // Refresh the workspace data to show changes
+      getWorkspaces(vaultPath);
+    } else {
+      throw new Error(result.error || 'Unknown error');
+    }
+  } catch (error) {
+    showNotification(`Failed to delete duplicate tabs: ${error}`, 5000);
   }
 }
 
@@ -400,6 +465,7 @@ function main() {
   copyButtonEl.addEventListener('click', () => handleTabOperation('copy'));
   moveButtonEl.addEventListener('click', () => handleTabOperation('move'));
   deleteButtonEl.addEventListener('click', handleDeleteOperation);
+  deleteDuplicatesButtonEl.addEventListener('click', handleDeleteDuplicatesOperation);
 
   // Initial data load
   getObsidianStatus();

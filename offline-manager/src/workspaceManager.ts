@@ -346,4 +346,55 @@ export class WorkspaceManager {
             throw error;
         }
     }
+    public async deleteDuplicateTabsFromWorkspace(
+        workspaceName: string
+    ): Promise<boolean> {
+        await this.beginTransaction();
+        try {
+            const workspacesData = await this.getWorkspaces();
+            const workspace = workspacesData.workspaces[workspaceName];
+
+            if (!workspace) {
+                throw new Error('Workspace not found.');
+            }
+
+            const allTabs = this.extractTabsFromWorkspace(workspace);
+            const seenFilePaths = new Set<string>();
+            const duplicateTabIds: string[] = [];
+
+            for (const tab of allTabs) {
+                if (seenFilePaths.has(tab.filePath)) {
+                    duplicateTabIds.push(tab.id);
+                } else {
+                    seenFilePaths.add(tab.filePath);
+                }
+            }
+
+            if (duplicateTabIds.length === 0) {
+                // No duplicates found, so no changes needed.
+                await this.commitTransaction(); // Still need to commit to clear the backup
+                return true;
+            }
+
+            for (const tabId of duplicateTabIds) {
+                const tabInfo = this.findTabRecursive(workspace.main, tabId, null);
+                if (tabInfo && tabInfo.parent.children) {
+                    const index = tabInfo.parent.children.findIndex(c => c.id === tabId);
+                    if (index > -1) {
+                        tabInfo.parent.children.splice(index, 1);
+                    }
+                }
+            }
+            
+            workspace.mtime = new Date().toISOString();
+
+            await this.saveWorkspaces(workspacesData);
+            await this.commitTransaction();
+            return true;
+        } catch (error) {
+            console.error('Error during duplicate deletion, rolling back...', error);
+            await this.rollbackTransaction();
+            throw error;
+        }
+    }
 }

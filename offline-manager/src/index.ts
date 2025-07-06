@@ -69,6 +69,17 @@ app.post('/api/workspaces/delete', asyncHandler(async (req: Request, res: Respon
   res.json({ success: true });
 }));
 
+app.post('/api/workspaces/delete-duplicates', asyncHandler(async (req: Request, res: Response) => {
+  const { vaultPath, workspaceName } = req.body;
+  if (!vaultPath || !workspaceName) {
+    res.status(400).json({ error: 'Missing required parameters.' });
+    return;
+  }
+  const workspaceManager = new LocalWorkspaceManager(vaultPath);
+  await workspaceManager.deleteDuplicateTabsFromWorkspace(workspaceName);
+  res.json({ success: true });
+}));
+
 app.post('/api/obsidian/quit', asyncHandler(async (req: Request, res: Response) => {
   await processManager.quitObsidian();
   res.json({ success: true });
