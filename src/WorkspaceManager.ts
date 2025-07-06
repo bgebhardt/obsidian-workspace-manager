@@ -139,8 +139,10 @@ export class WorkspaceManager {
         const file = this.app.vault.getAbstractFileByPath(filePath);
         if (file instanceof TFile) {
             Logger.debug(`Found file in vault: "${filePath}". Opening in new leaf.`);
-            const leaf = this.app.workspace.getLeaf(true);
-            await leaf.openFile(file);
+            
+            const leaf = this.app.workspace.getLeaf(true); // new tab
+            await leaf.openFile(file); // open file in that tab
+            
             Logger.debug(`File "${filePath}" opened.`);
         } else {
             Logger.warn(`File not found in vault: "${filePath}". Skipping.`);
@@ -148,7 +150,7 @@ export class WorkspaceManager {
             return;
         }
 
-        await this.workspacePlugin.instance.saveWorkspace(workspaceName);
+        //await this.workspacePlugin.instance.saveWorkspace(workspaceName);
         new Notice(`Tab "${filePath}" added to workspace "${workspaceName}".`);
         Logger.info(`Tab "${filePath}" added to workspace "${workspaceName}".`);
     }

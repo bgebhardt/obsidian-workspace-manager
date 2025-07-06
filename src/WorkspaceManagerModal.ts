@@ -7,6 +7,8 @@ export class WorkspaceManagerModal extends Modal {
     private targetWorkspace: string = '';
     private selectedFiles: string[] = [];
     private filesInSource: string[] = [];
+    private filePathToAdd: string = '';
+    private workspaceForFile: string = '';
 
     constructor(app: App, private workspaceManager: WorkspaceManager) {
         super(app);
@@ -35,6 +37,7 @@ export class WorkspaceManagerModal extends Modal {
         // Set default workspaces
         this.sourceWorkspace = this.app.workspace.activeLeaf?.getDisplayText() || workspaceNames[0];
         this.targetWorkspace = workspaceNames.find(name => name !== this.sourceWorkspace) || this.sourceWorkspace;
+        this.workspaceForFile = workspaceNames[0];
 
         // Source workspace selector
         new Setting(contentEl)
@@ -129,6 +132,45 @@ export class WorkspaceManagerModal extends Modal {
 
                 new Notice(`Deleted ${this.selectedFiles.length} files from ${this.sourceWorkspace}.`);
                 await this.updateTabsList();
+            });
+
+        // Add a new section for adding a tab to a workspace
+        const addTabSection = contentEl.createDiv({ cls: 'workspace-manager-add-tab' });
+        addTabSection.createEl('h3', { text: 'Add Tab to Workspace' });
+
+        new Setting(addTabSection)
+            .setName('File Path')
+            .setDesc('Enter the path to the note to add')
+            .addText(text => {
+                text.setPlaceholder('path/to/your/note.md');
+                text.onChange(value => {
+                    this.filePathToAdd = value;
+                });
+            });
+
+        new Setting(addTabSection)
+            .setName('Target Workspace')
+            .setDesc('Select the workspace to add the file to')
+            .addDropdown(dropdown => {
+                workspaceNames.forEach(name => dropdown.addOption(name, name));
+                dropdown.setValue(this.workspaceForFile);
+                dropdown.onChange(value => {
+                    this.workspaceForFile = value;
+                });
+            });
+
+        addTabSection.createEl('button', { text: 'Add to Workspace', cls: 'mod-cta' })
+            .addEventListener('click', async () => {
+                if (!this.filePathToAdd) {
+                    new Notice('Please enter a file path.');
+                    return;
+                }
+                if (!this.workspaceForFile) {
+                    new Notice('Please select a workspace.');
+                    return;
+                }
+                await this.workspaceManager.addTabToWorkspace(this.workspaceForFile, this.filePathToAdd);
+                new Notice(`Tab "${this.filePathToAdd}" added to workspace "${this.workspaceForFile}".`);
             });
 
         // Initial tabs list
