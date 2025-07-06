@@ -13,7 +13,7 @@ const obsidianStatusEl = document.querySelector<HTMLDivElement>('#obsidian-statu
 const vaultSelectorEl = document.querySelector<HTMLSelectElement>('#vault-selector')!;
 const sourceWorkspaceListEl = document.querySelector<HTMLDivElement>('#source-workspace-list')!;
 const targetWorkspaceSelectorEl = document.querySelector<HTMLSelectElement>('#target-workspace-selector')!;
-const tabListEl = document.querySelector<HTMLDivElement>('#tab-list')!;
+const tabListEl = document.querySelector<HTMLTableSectionElement>('#tab-list')!;
 const copyButtonEl = document.querySelector<HTMLButtonElement>('#copy-button')!;
 const moveButtonEl = document.querySelector<HTMLButtonElement>('#move-button')!;
 
@@ -176,21 +176,30 @@ function displayTabsForWorkspace(workspaceName: string) {
   }
 
   tabs.forEach(tab => {
-    const div = document.createElement('div');
-    div.className = 'tab-item';
-    
+    const tr = document.createElement('tr');
+    tr.className = 'tab-item';
+
+    // 1. Checkbox cell
+    const tdCheckbox = document.createElement('td');
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.id = `tab-${tab.id}`;
     checkbox.value = tab.id;
-    
-    const label = document.createElement('label');
-    label.htmlFor = `tab-${tab.id}`;
-    label.textContent = `${tab.title} (${tab.filePath})`;
-    
-    div.appendChild(checkbox);
-    div.appendChild(label);
-    tabListEl.appendChild(div);
+    tdCheckbox.appendChild(checkbox);
+
+    // 2. Name cell
+    const tdName = document.createElement('td');
+    tdName.textContent = tab.title;
+
+    // 3. Path cell
+    const tdPath = document.createElement('td');
+    tdPath.textContent = tab.filePath;
+    tdPath.className = 'tab-path';
+
+    tr.appendChild(tdCheckbox);
+    tr.appendChild(tdName);
+    tr.appendChild(tdPath);
+    tabListEl.appendChild(tr);
   });
 }
 
