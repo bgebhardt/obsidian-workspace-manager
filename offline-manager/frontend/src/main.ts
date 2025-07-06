@@ -11,13 +11,20 @@ interface ObsidianVault {
 // --- DOM Element References ---
 const obsidianStatusEl = document.querySelector<HTMLDivElement>('#obsidian-status')!;
 const vaultSelectorEl = document.querySelector<HTMLSelectElement>('#vault-selector')!;
+const openVaultLinkEl = document.querySelector<HTMLAnchorElement>('#open-vault-link')!;
 const sourceWorkspaceListEl = document.querySelector<HTMLDivElement>('#source-workspace-list')!;
 const targetWorkspaceListEl = document.querySelector<HTMLDivElement>('#target-workspace-list')!;
 const tabListEl = document.querySelector<HTMLTableSectionElement>('#tab-list')!;
 const copyButtonEl = document.querySelector<HTMLButtonElement>('#copy-button')!;
 const moveButtonEl = document.querySelector<HTMLButtonElement>('#move-button')!;
+const deleteButtonEl = document.querySelector<HTMLButtonElement>('#delete-button')!;
 
 // --- Type Definitions ---
+interface ObsidianStatus {
+    isRunning: boolean;
+    openVaults?: string[];
+}
+
 interface WorkspaceLayout {
   main: LayoutComponent;
   // other properties are not needed for tab extraction on frontend
@@ -56,11 +63,11 @@ let currentWorkspaces: WorkspacesData | null = null;
 async function getObsidianStatus() {
   try {
     const response = await fetch('/api/obsidian-status');
-    const data = await response.json();
-    updateObsidianStatus(data.isRunning);
+    const data: ObsidianStatus = await response.json();
+    updateObsidianStatus(data);
   } catch (error) {
     console.error('Failed to fetch Obsidian status:', error);
-    updateObsidianStatus(null);
+    updateObsidianStatus({ isRunning: false }); // Assume not running on error
   }
 }
 
@@ -97,15 +104,42 @@ async function getWorkspaces(vaultPath: string) {
 }
 
 // --- UI Update Functions ---
-function updateObsidianStatus(isRunning: boolean | null) {
-  if (isRunning === null) {
-    obsidianStatusEl.textContent = 'Could not determine Obsidian status. Please ensure the backend server is running.';
+function updateObsidianStatus(status: ObsidianStatus | null) {
+  if (status === null) {
+    obsidianStatusEl.innerHTML = '<span>Could not determine Obsidian status. Please ensure the backend server is running.</span>';
     obsidianStatusEl.className = 'status-banner error';
-  } else if (isRunning) {
-    obsidianStatusEl.textContent = 'Warning: Obsidian is currently running. Please close it before making changes.';
+  } else if (status.isRunning) {
+    let warningText = 'Warning: Obsidian is currently running. Please close it before making changes.';
+    if (status.openVaults && status.openVaults.length > 0) {
+        warningText += `<br>Open vaults: <strong>${status.openVaults.join(', ')}</strong>.`;
+    }
+
+    obsidianStatusEl.innerHTML = `<span>${warningText}</span>`;
+    
+    // Only show the quit button on Mac
+    if (navigator.platform.toUpperCase().indexOf('MAC') >= 0) {
+      const quitButton = document.createElement('button');
+      quitButton.textContent = 'Quit Obsidian';
+      quitButton.className = 'quit-button';
+      quitButton.addEventListener('click', async () => {
+        try {
+          quitButton.textContent = 'Quitting...';
+          quitButton.disabled = true;
+          await fetch('/api/obsidian/quit', { method: 'POST' });
+          // Wait a moment for the process to terminate before re-checking
+          setTimeout(getObsidianStatus, 2000);
+        } catch (error) {
+          alert('Failed to send quit command.');
+          quitButton.textContent = 'Quit Obsidian';
+          quitButton.disabled = false;
+        }
+      });
+      obsidianStatusEl.appendChild(quitButton);
+    }
+
     obsidianStatusEl.className = 'status-banner warning';
   } else {
-    obsidianStatusEl.textContent = 'Obsidian is not running. It is safe to make changes.';
+    obsidianStatusEl.innerHTML = '<span>Obsidian is not running. It is safe to make changes.</span>';
     obsidianStatusEl.className = 'status-banner success';
   }
 }
@@ -119,9 +153,10 @@ function populateVaultSelector(vaults: ObsidianVault[]) {
   vaultSelectorEl.innerHTML = '<option value="">-- Select a Vault --</option>';
   for (const vault of vaults) {
     const option = document.createElement('option');
+    const vaultName = vault.name || vault.path.split('/').pop() || vault.path;
     option.value = vault.path;
-    // Use the folder name as a fallback for the vault name
-    option.textContent = vault.name || vault.path.split('/').pop() || vault.path;
+    option.textContent = vaultName;
+    option.dataset.vaultName = vaultName; // Store vault name for URI
     vaultSelectorEl.appendChild(option);
   }
 }
@@ -281,15 +316,76 @@ async function handleTabOperation(operation: 'move' | 'copy') {
   }
 }
 
+async function handleDeleteOperation() {
+  const vaultPath = vaultSelectorEl.value;
+  const selectedSourceEl = sourceWorkspaceListEl.querySelector('.workspace-item.selected');
+
+  if (!vaultPath || !selectedSourceEl) {
+    alert('Please select a vault and a source workspace.');
+    return;
+  }
+
+  const workspaceName = selectedSourceEl.textContent || '';
+  const selectedTabIds = Array.from(tabListEl.querySelectorAll<HTMLInputElement>('input[type="checkbox"]:checked'))
+    .map(cb => cb.value);
+
+  if (selectedTabIds.length === 0) {
+    alert('Please select at least one tab to delete.');
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete ${selectedTabIds.length} tabs from the "${workspaceName}" workspace? This cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/workspaces/delete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        vaultPath,
+        workspaceName,
+        tabIds: selectedTabIds,
+      }),
+    });
+
+    const result = await response.json();
+    if (response.ok && result.success) {
+      alert(`Successfully deleted ${selectedTabIds.length} tabs!`);
+      // Refresh the workspace data to show changes
+      getWorkspaces(vaultPath);
+    } else {
+      throw new Error(result.error || 'Unknown error');
+    }
+  } catch (error) {
+    alert(`Failed to delete tabs: ${error}`);
+  }
+}
+
+
 // --- Initial Application Logic ---
 function main() {
   // Add event listeners
   vaultSelectorEl.addEventListener('change', () => {
-    getWorkspaces(vaultSelectorEl.value);
+    const selectedVaultPath = vaultSelectorEl.value;
+    const selectedOption = vaultSelectorEl.options[vaultSelectorEl.selectedIndex];
+    const vaultName = selectedOption ? selectedOption.dataset.vaultName : null;
+
+    if (selectedVaultPath && vaultName) {
+      openVaultLinkEl.href = `obsidian://open?vault=${encodeURIComponent(vaultName)}`;
+      openVaultLinkEl.hidden = false;
+    } else {
+      openVaultLinkEl.hidden = true;
+    }
+
+    getWorkspaces(selectedVaultPath);
   });
 
   copyButtonEl.addEventListener('click', () => handleTabOperation('copy'));
   moveButtonEl.addEventListener('click', () => handleTabOperation('move'));
+  deleteButtonEl.addEventListener('click', handleDeleteOperation);
 
   // Initial data load
   getObsidianStatus();

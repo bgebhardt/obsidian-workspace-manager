@@ -14,8 +14,10 @@ export class ProcessManager {
             end tell
             if isRunning then
                 try
-                    tell application "Obsidian"
-                        set windowNames to name of windows
+                    tell application "System Events"
+                        tell application process "Obsidian"
+                            set windowNames to name of every window
+                        end tell
                     end tell
                     return {isRunning:true, openVaults:windowNames}
                 on error
@@ -29,13 +31,19 @@ export class ProcessManager {
             execute(script, (err: Error | null, result: any) => {
                 if (err || !result) {
                     console.error("AppleScript error getting status:", err);
-                    // Fallback to ps-list on AppleScript error
                     this.isObsidianRunningPsList().then(psResult => resolve({ isRunning: psResult }));
                     return;
                 }
-                // osascript returns a record; we need to parse the vault names
-                const vaults = (result.openVaults || []).map((w: string) => w.split(' – ')[0]);
-                resolve({ isRunning: result.isRunning, openVaults: vaults });
+                
+                let openVaults: string[] = [];
+                if (result.openVaults && Array.isArray(result.openVaults)) {
+                    openVaults = result.openVaults.map((w: string) => {
+                        const parts = w.split(' - ');
+                        return parts.length > 1 ? parts[1].trim() : parts[0].trim();
+                    }).filter(Boolean); // Filter out any empty strings
+                }
+                
+                resolve({ isRunning: result.isRunning, openVaults });
             });
         });
     }
