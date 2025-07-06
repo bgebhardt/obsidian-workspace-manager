@@ -162,7 +162,7 @@ function populateVaultSelector(vaults: ObsidianVault[]) {
 }
 
 function populateWorkspaceLists(data: WorkspacesData) {
-  const workspaceNames = Object.keys(data.workspaces);
+  const workspaceNames = Object.keys(data.workspaces).sort((a, b) => a.localeCompare(b));
   sourceWorkspaceListEl.innerHTML = '';
   targetWorkspaceListEl.innerHTML = '';
   tabListEl.innerHTML = '';
