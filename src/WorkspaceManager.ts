@@ -122,6 +122,73 @@ export class WorkspaceManager {
         new Notice(`Workspace "${workspaceName}" has been updated.`);
         Logger.info(`Workspace "${workspaceName}" reorganized and saved.`);
     }
+/**
+     * Adds a tab to a workspace.
+     * @param {string} workspaceName - The name of the workspace.
+     * @param {string} filePath - The file path of the tab to add.
+     */
+    async addTabToWorkspace(workspaceName: string, filePath: string): Promise<void> {
+        if (!this.isPluginEnabled()) {
+            return;
+        }
+
+        Logger.debug(`Adding tab "${filePath}" to workspace: "${workspaceName}"`);
+
+        await this.workspacePlugin.instance.loadWorkspace(workspaceName);
+
+        const file = this.app.vault.getAbstractFileByPath(filePath);
+        if (file instanceof TFile) {
+            Logger.debug(`Found file in vault: "${filePath}". Opening in new leaf.`);
+            const leaf = this.app.workspace.getLeaf(true);
+            await leaf.openFile(file);
+            Logger.debug(`File "${filePath}" opened.`);
+        } else {
+            Logger.warn(`File not found in vault: "${filePath}". Skipping.`);
+            new Notice(`File not found: ${filePath}`);
+            return;
+        }
+
+        await this.workspacePlugin.instance.saveWorkspace(workspaceName);
+        new Notice(`Tab "${filePath}" added to workspace "${workspaceName}".`);
+        Logger.info(`Tab "${filePath}" added to workspace "${workspaceName}".`);
+    }
+
+    /**
+     * Deletes a tab from a workspace.
+     * @param {string} workspaceName - The name of the workspace.
+     * @param {string} filePath - The file path of the tab to delete.
+     */
+    async deleteTabFromWorkspace(workspaceName: string, filePath: string): Promise<void> {
+        if (!this.isPluginEnabled()) {
+            return;
+        }
+
+        Logger.debug(`Deleting tab "${filePath}" from workspace: "${workspaceName}"`);
+
+        await this.workspacePlugin.instance.loadWorkspace(workspaceName);
+
+        let leafFound = false;
+        this.app.workspace.iterateAllLeaves((leaf) => {
+            const leafFilePath = (leaf.view as FileView).file?.path;
+            if (leafFilePath && leafFilePath === filePath) {
+                Logger.debug(`Detaching leaf with file: "${leafFilePath}"`);
+                leaf.detach();
+                leafFound = true;
+            }
+        });
+
+        if (!leafFound) {
+            new Notice(`Tab "${filePath}" not found in the current layout of workspace "${workspaceName}".`);
+            Logger.warn(`Tab "${filePath}" not found in workspace "${workspaceName}" for deletion.`);
+        }
+        
+        await this.workspacePlugin.instance.saveWorkspace(workspaceName);
+
+        if (leafFound) {
+            new Notice(`Tab "${filePath}" removed from workspace "${workspaceName}".`);
+            Logger.info(`Tab "${filePath}" removed from workspace "${workspaceName}".`);
+        }
+    }
 
     /**
      * Deletes a workspace.
