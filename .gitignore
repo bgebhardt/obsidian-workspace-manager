@@ -3,10 +3,13 @@
 
 # Build artifacts
 /dist
+# generated js file
+main.js 
 
 # IDE specific
 .idea
 .vscode
+
 
 # macos
 .DS_Store
