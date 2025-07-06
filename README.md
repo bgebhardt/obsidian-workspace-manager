@@ -25,9 +25,22 @@ Here's how you could build a workspace reorganization UI that directly edits the
     ```bash
     npm test
     ```
-
     
-## Plugin Architecture
+    ### Managing Services
+    
+    A helper script is provided to manage the backend and frontend services.
+    
+    **Usage:**
+    
+    ```bash
+    ./offline-manager/manage.sh {start|stop|status}
+    ```
+    
+    -   **start**: Starts the backend and frontend services in the background.
+    -   **stop**: Stops all running services.
+    -   **status**: Checks the current status of the services.
+    
+    ## Plugin Architecture
 
 **Core Components:**
 1. **Workspace Parser** - Read/write the workspaces.json file
