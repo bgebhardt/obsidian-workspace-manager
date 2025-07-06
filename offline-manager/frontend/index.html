@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline Workspace Manager</title>
+  </head>
+  <body>
+    <div id="app">
+      <h1>Obsidian Offline Workspace Manager</h1>
+      
+      <div id="obsidian-status" class="status-banner"></div>
+
+      <div class="container">
+        <div class="vault-selection">
+          <h2>1. Select a Vault</h2>
+          <select id="vault-selector" aria-label="Select a Vault"></select>
+        </div>
+
+        <main class="workspace-editor">
+          <aside class="source-workspaces">
+            <h2>2. Source Workspaces</h2>
+            <div id="source-workspace-list"></div>
+          </aside>
+
+          <section class="tab-selection">
+            <h2>3. Select Tabs</h2>
+            <div id="tab-list"></div>
+          </section>
+        </main>
+
+        <footer class="actions">
+          <div class="target-selection">
+            <h2>4. Select Target Workspace</h2>
+            <select id="target-workspace-selector" aria-label="Select Target Workspace"></select>
+          </div>
+          <div class="action-buttons">
+            <button id="copy-button">Copy Tabs</button>
+            <button id="move-button">Move Tabs</button>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
