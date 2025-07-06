@@ -8,15 +8,15 @@ The tool's primary goal is to provide powerful workspace editing capabilities wh
 
 ## 2. Architecture
 
-The tool will be a local client-server application. A lightweight Node.js backend will handle all file system interactions, business logic, and serve a simple, modern web interface to the browser.
+The tool is a standalone desktop application built with Electron. It wraps a local client-server architecture where a Node.js backend handles all file system interactions and business logic, and serves a simple, modern web interface to the Electron application window.
 
 ```mermaid
 graph TD
-    subgraph Browser
-        A[WebApp UI]
+    subgraph Desktop Application
+        Z[Electron Shell] --> A[WebApp UI]
     end
 
-    subgraph Local Node.js Server
+    subgraph "Local Node.js Server (Child Process)"
         B[API Server - Express.js]
         C[Vault Manager]
         D[Process Manager]
@@ -48,16 +48,16 @@ graph TD
 
 ### Core Components
 
-*   **Backend (Node.js/Express):** A server responsible for all logic that requires access to the local file system.
-    *   **API Server:** Exposes endpoints for the frontend to interact with, such as listing vaults, getting workspace data, and performing move/copy operations.
-    *   **Vault Manager:** Locates the Obsidian configuration file (`obsidian.json`) on the user's system to discover recently opened vaults.
-    *   **Process Manager:** Detects if the Obsidian application is currently running to prevent data corruption from simultaneous file access.
-    *   **Workspace Manager:** The core logic engine adapted from the original plugin. It handles reading, parsing, modifying, and writing `workspaces.json`. It orchestrates the backup and file writing process.
-    *   **Backup Service:** Manages the creation and pruning of timestamped backups for `workspaces.json`, mirroring the reliable strategy from the original `WORKPLAN.md`.
-
-*   **Frontend (HTML/CSS/JavaScript):** A single-page application (SPA) that provides the user interface.
-    *   **UI Components:** A set of simple, reactive components for displaying vaults, workspaces, and tabs, and for triggering actions.
-    *   **API Client:** A service layer for making requests to the backend Node.js server.
+*   **Electron Shell:** The native wrapper for the application. It is responsible for creating the application window, loading the frontend, and managing the lifecycle of the backend server process.
+*   **Backend (Node.js/Express):** A server, running as a child process of the Electron app, responsible for all logic that requires access to the local file system.
+    *   **API Server:** Exposes endpoints for the frontend to interact with.
+    *   **Vault Manager:** Locates the Obsidian configuration file to discover vaults.
+    *   **Process Manager:** Detects if the Obsidian application is running. On macOS, this was enhanced to use AppleScript for greater reliability and to fetch the names of open vaults.
+    *   **Workspace Manager:** The core logic engine that handles reading, parsing, modifying, and writing `workspaces.json`.
+    *   **Backup Service:** Manages the creation of timestamped backups.
+*   **Frontend (Vite/TypeScript):** A single-page application that provides the user interface.
+    *   **UI Components:** A set of reactive components for displaying vaults, workspaces, and tabs, and for triggering actions.
+    *   **API Client:** A service layer for making requests to the backend Node.js server via a proxy.
 
 ## 3. Data Models
 
@@ -174,6 +174,16 @@ The project will be developed in a new `offline-manager` directory.
 3.  **Build and Sign:**
     *   Implement scripts to build the final application bundles (`.app`, `.exe`).
     *   (Optional) Set up code signing for macOS and Windows to avoid security warnings.
+
+### Phase 6: Additional Features (Post-Hoc)
+
+After the initial implementation, the following features were added based on user feedback:
+
+1.  **Delete Tabs:** A button and corresponding backend logic were added to allow for the deletion of selected tabs from a workspace.
+2.  **Remote Quit Obsidian (macOS):** A button was added to the "Obsidian is running" warning banner to allow users to quit the Obsidian application remotely via AppleScript.
+3.  **Open Vault in Obsidian:** A button was added to the UI to allow opening the currently selected vault directly using the `obsidian://` URI scheme.
+4.  **Enhanced Warning Message (macOS):** The process detection on macOS was enhanced to not only detect if Obsidian is running, but also to list the names of the currently open vaults in the warning message for better user context.
+5.  **UI/UX Refinements:** Several iterative styling and layout changes were made to improve usability, including changing the tab list to a table and rearranging the workspace selectors.
 
 ## 6. Data Safety Mechanisms
 
