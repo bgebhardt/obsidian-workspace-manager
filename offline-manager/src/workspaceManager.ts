@@ -138,17 +138,9 @@ export class WorkspaceManager {
     }
 
     public async saveWorkspaces(workspacesData: WorkspacesData): Promise<void> {
-        try {
-            // This is the entry point for any write operation.
-            // It ensures a backup is made before saving.
-            await this.createBackup();
-            
-            const jsonString = JSON.stringify(workspacesData, null, 2);
-            await this.writeAtomically(jsonString);
-        } catch (error) {
-            console.error('Failed to save workspaces:', error);
-            throw error; // Re-throw to be handled by the caller
-        }
+        // This method is now only for the final write, backup is handled by the transaction.
+        const jsonString = JSON.stringify(workspacesData, null, 2);
+        await this.writeAtomically(jsonString);
     }
 
     // --- Workspace Manipulation ---
@@ -238,33 +230,70 @@ export class WorkspaceManager {
         }
     }
 
+    // --- Transaction Management ---
+
+    private async beginTransaction(): Promise<void> {
+        this.transactionBackupPath = await this.createBackup();
+    }
+
+    private async commitTransaction(): Promise<void> {
+        // Transaction was successful, clear the backup path so it won't be restored.
+        this.transactionBackupPath = null;
+    }
+
+    private async rollbackTransaction(): Promise<void> {
+        if (!this.transactionBackupPath) {
+            console.warn('Rollback called but no transaction backup path is set.');
+            return;
+        }
+        try {
+            const backupContent = await fs.readFile(this.transactionBackupPath, 'utf-8');
+            await this.writeAtomically(backupContent);
+            console.log(`Successfully rolled back from backup: ${this.transactionBackupPath}`);
+        } catch (error) {
+            console.error('FATAL: Failed to rollback transaction from backup.', error);
+            // If rollback fails, the user's data might be in an inconsistent state.
+            // This is a critical error.
+            throw new Error('Failed to restore from backup during rollback.');
+        } finally {
+            this.transactionBackupPath = null;
+        }
+    }
+
     public async moveTabsBetweenWorkspaces(
         sourceWorkspaceName: string,
         targetWorkspaceName: string,
         tabIds: string[]
     ): Promise<boolean> {
-        const workspacesData = await this.getWorkspaces();
-        const sourceWorkspace = workspacesData.workspaces[sourceWorkspaceName];
-        const targetWorkspace = workspacesData.workspaces[targetWorkspaceName];
+        await this.beginTransaction();
+        try {
+            const workspacesData = await this.getWorkspaces();
+            const sourceWorkspace = workspacesData.workspaces[sourceWorkspaceName];
+            const targetWorkspace = workspacesData.workspaces[targetWorkspaceName];
 
-        if (!sourceWorkspace || !targetWorkspace) {
-            throw new Error('Source or target workspace not found.');
-        }
-
-        for (const tabId of tabIds) {
-            const tabInfo = this.findTabRecursive(sourceWorkspace.main, tabId, null);
-            if (tabInfo) {
-                this.removeTabRecursive(sourceWorkspace.main, tabId);
-                this.addTabToWorkspace(targetWorkspace, tabInfo.found);
+            if (!sourceWorkspace || !targetWorkspace) {
+                throw new Error('Source or target workspace not found.');
             }
-        }
-        
-        // Update modification times
-        sourceWorkspace.mtime = new Date().toISOString();
-        targetWorkspace.mtime = new Date().toISOString();
 
-        await this.saveWorkspaces(workspacesData);
-        return true;
+            for (const tabId of tabIds) {
+                const tabInfo = this.findTabRecursive(sourceWorkspace.main, tabId, null);
+                if (tabInfo) {
+                    this.removeTabRecursive(sourceWorkspace.main, tabId);
+                    this.addTabToWorkspace(targetWorkspace, tabInfo.found);
+                }
+            }
+            
+            sourceWorkspace.mtime = new Date().toISOString();
+            targetWorkspace.mtime = new Date().toISOString();
+
+            await this.saveWorkspaces(workspacesData);
+            await this.commitTransaction();
+            return true;
+        } catch (error) {
+            console.error('Error during move operation, rolling back...', error);
+            await this.rollbackTransaction();
+            throw error; // Re-throw error to be sent to the frontend
+        }
     }
 
     public async copyTabsBetweenWorkspaces(
@@ -272,25 +301,32 @@ export class WorkspaceManager {
         targetWorkspaceName: string,
         tabIds: string[]
     ): Promise<boolean> {
-        const workspacesData = await this.getWorkspaces();
-        const sourceWorkspace = workspacesData.workspaces[sourceWorkspaceName];
-        const targetWorkspace = workspacesData.workspaces[targetWorkspaceName];
+        await this.beginTransaction();
+        try {
+            const workspacesData = await this.getWorkspaces();
+            const sourceWorkspace = workspacesData.workspaces[sourceWorkspaceName];
+            const targetWorkspace = workspacesData.workspaces[targetWorkspaceName];
 
-        if (!sourceWorkspace || !targetWorkspace) {
-            throw new Error('Source or target workspace not found.');
-        }
-
-        for (const tabId of tabIds) {
-            const tabInfo = this.findTabRecursive(sourceWorkspace.main, tabId, null);
-            if (tabInfo) {
-                // Don't remove from source, just add to target
-                this.addTabToWorkspace(targetWorkspace, tabInfo.found);
+            if (!sourceWorkspace || !targetWorkspace) {
+                throw new Error('Source or target workspace not found.');
             }
+
+            for (const tabId of tabIds) {
+                const tabInfo = this.findTabRecursive(sourceWorkspace.main, tabId, null);
+                if (tabInfo) {
+                    this.addTabToWorkspace(targetWorkspace, tabInfo.found);
+                }
+            }
+
+            targetWorkspace.mtime = new Date().toISOString();
+
+            await this.saveWorkspaces(workspacesData);
+            await this.commitTransaction();
+            return true;
+        } catch (error) {
+            console.error('Error during copy operation, rolling back...', error);
+            await this.rollbackTransaction();
+            throw error; // Re-throw error to be sent to the frontend
         }
-
-        targetWorkspace.mtime = new Date().toISOString();
-
-        await this.saveWorkspaces(workspacesData);
-        return true;
     }
 }
