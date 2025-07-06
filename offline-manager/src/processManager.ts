@@ -1,18 +1,41 @@
 import * as os from 'os';
 import { execute } from 'node-osascript';
 
+export interface ObsidianStatus {
+    isRunning: boolean;
+    openVaults?: string[];
+}
+
 export class ProcessManager {
-    private async isObsidianRunningMac(): Promise<boolean> {
-        const script = 'tell application "System Events" to (name of processes) contains "Obsidian"';
+    private async getMacObsidianStatus(): Promise<ObsidianStatus> {
+        const script = `
+            tell application "System Events"
+                set isRunning to (name of processes) contains "Obsidian"
+            end tell
+            if isRunning then
+                try
+                    tell application "Obsidian"
+                        set windowNames to name of windows
+                    end tell
+                    return {isRunning:true, openVaults:windowNames}
+                on error
+                    return {isRunning:true, openVaults:{}}
+                end try
+            else
+                return {isRunning:false, openVaults:{}}
+            end if
+        `;
         return new Promise((resolve) => {
             execute(script, (err: Error | null, result: any) => {
-                if (err) {
-                    console.error("AppleScript error:", err);
+                if (err || !result) {
+                    console.error("AppleScript error getting status:", err);
                     // Fallback to ps-list on AppleScript error
-                    this.isObsidianRunningPsList().then(resolve);
+                    this.isObsidianRunningPsList().then(psResult => resolve({ isRunning: psResult }));
                     return;
                 }
-                resolve(result as boolean);
+                // osascript returns a record; we need to parse the vault names
+                const vaults = (result.openVaults || []).map((w: string) => w.split(' – ')[0]);
+                resolve({ isRunning: result.isRunning, openVaults: vaults });
             });
         });
     }
@@ -26,11 +49,30 @@ export class ProcessManager {
         return processes.some(p => p.name.toLowerCase().includes('obsidian'));
     }
 
-    public async isObsidianRunning(): Promise<boolean> {
+    public async getObsidianStatus(): Promise<ObsidianStatus> {
         if (os.platform() === 'darwin') {
-            return this.isObsidianRunningMac();
+            return this.getMacObsidianStatus();
         } else {
-            return this.isObsidianRunningPsList();
+            const isRunning = await this.isObsidianRunningPsList();
+            return { isRunning };
         }
+    }
+
+    public async quitObsidian(): Promise<void> {
+        if (os.platform() !== 'darwin') {
+            // This should not be callable from the UI on non-mac platforms, but as a safeguard:
+            console.warn('Attempted to quit Obsidian on a non-mac platform.');
+            return;
+        }
+        const script = 'tell application "Obsidian" to quit';
+        return new Promise((resolve, reject) => {
+            execute(script, (err: Error | null) => {
+                if (err) {
+                    console.error("AppleScript error quitting Obsidian:", err);
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
     }
 }

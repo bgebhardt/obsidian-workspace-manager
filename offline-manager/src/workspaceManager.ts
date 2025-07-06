@@ -311,4 +311,39 @@ export class WorkspaceManager {
             throw error; // Re-throw error to be sent to the frontend
         }
     }
+
+    public async deleteTabsFromWorkspace(
+        workspaceName: string,
+        tabIds: string[]
+    ): Promise<boolean> {
+        await this.beginTransaction();
+        try {
+            const workspacesData = await this.getWorkspaces();
+            const workspace = workspacesData.workspaces[workspaceName];
+
+            if (!workspace) {
+                throw new Error('Workspace not found.');
+            }
+
+            for (const tabId of tabIds) {
+                const tabInfo = this.findTabRecursive(workspace.main, tabId, null);
+                if (tabInfo && tabInfo.parent.children) {
+                    const index = tabInfo.parent.children.findIndex(c => c.id === tabId);
+                    if (index > -1) {
+                        tabInfo.parent.children.splice(index, 1);
+                    }
+                }
+            }
+            
+            workspace.mtime = new Date().toISOString();
+
+            await this.saveWorkspaces(workspacesData);
+            await this.commitTransaction();
+            return true;
+        } catch (error) {
+            console.error('Error during delete operation, rolling back...', error);
+            await this.rollbackTransaction();
+            throw error;
+        }
+    }
 }

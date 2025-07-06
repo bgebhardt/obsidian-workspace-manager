@@ -21,8 +21,8 @@ app.get('/api/vaults', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 app.get('/api/obsidian-status', asyncHandler(async (req: Request, res: Response) => {
-  const isRunning = await processManager.isObsidianRunning();
-  res.json({ isRunning });
+  const status = await processManager.getObsidianStatus();
+  res.json(status);
 }));
 
 app.get('/api/workspaces', asyncHandler(async (req: Request, res: Response) => {
@@ -55,6 +55,22 @@ app.post('/api/workspaces/copy', asyncHandler(async (req: Request, res: Response
   }
   const workspaceManager = new LocalWorkspaceManager(vaultPath);
   await workspaceManager.copyTabsBetweenWorkspaces(sourceWorkspace, targetWorkspace, tabIds);
+  res.json({ success: true });
+}));
+
+app.post('/api/workspaces/delete', asyncHandler(async (req: Request, res: Response) => {
+  const { vaultPath, workspaceName, tabIds } = req.body;
+  if (!vaultPath || !workspaceName || !tabIds) {
+    res.status(400).json({ error: 'Missing required parameters.' });
+    return;
+  }
+  const workspaceManager = new LocalWorkspaceManager(vaultPath);
+  await workspaceManager.deleteTabsFromWorkspace(workspaceName, tabIds);
+  res.json({ success: true });
+}));
+
+app.post('/api/obsidian/quit', asyncHandler(async (req: Request, res: Response) => {
+  await processManager.quitObsidian();
   res.json({ success: true });
 }));
 

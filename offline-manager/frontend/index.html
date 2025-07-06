@@ -14,7 +14,10 @@
 
       <div class="container">
         <div class="vault-selection">
-          <h2>1. Select a Vault</h2>
+          <div class="vault-header">
+            <h2>1. Select a Vault</h2>
+            <a id="open-vault-link" class="button-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Open in Obsidian</a>
+          </div>
           <select id="vault-selector" aria-label="Select a Vault"></select>
         </div>
 
@@ -33,6 +36,7 @@
           <div class="action-buttons">
             <button id="copy-button">Copy Tabs</button>
             <button id="move-button">Move Tabs</button>
+            <button id="delete-button" class="danger">Delete Selected Tabs</button>
           </div>
 
           <section class="tab-selection">
