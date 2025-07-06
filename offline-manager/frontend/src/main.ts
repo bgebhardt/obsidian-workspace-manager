@@ -10,6 +10,7 @@ interface ObsidianVault {
 
 // --- DOM Element References ---
 const obsidianStatusEl = document.querySelector<HTMLDivElement>('#obsidian-status')!;
+const checkObsidianStatusButtonEl = document.querySelector<HTMLButtonElement>('#check-obsidian-status-button')!;
 const vaultSelectorEl = document.querySelector<HTMLSelectElement>('#vault-selector')!;
 const openVaultLinkEl = document.querySelector<HTMLAnchorElement>('#open-vault-link')!;
 const reloadVaultButtonEl = document.querySelector<HTMLButtonElement>('#reload-vault-button')!;
@@ -466,6 +467,7 @@ function main() {
   moveButtonEl.addEventListener('click', () => handleTabOperation('move'));
   deleteButtonEl.addEventListener('click', handleDeleteOperation);
   deleteDuplicatesButtonEl.addEventListener('click', handleDeleteDuplicatesOperation);
+  checkObsidianStatusButtonEl.addEventListener('click', getObsidianStatus);
 
   // Initial data load
   getObsidianStatus();
