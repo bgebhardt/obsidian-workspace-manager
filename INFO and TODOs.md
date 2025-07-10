@@ -6,6 +6,10 @@ Place to hold notes and future todos for the project.
  # status 07-06-2025
 
 Gave upon plugin approach as I can't get it to open a new tab..
+For reference here's docs but they didn't work for me
+- [Workspace - Developer Documentation](https://docs.obsidian.md/Reference/TypeScript+API/Workspace)
+- [openLinkText - Developer Documentation](https://docs.obsidian.md/Reference/TypeScript+API/Workspace/openLinkText)
+
 
 Have a working system running as set out in the README.md. Requires backend and front end to be running. Look in offline directory.
 

@@ -1,5 +1,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import {
+    sortWorkspaces
+} from './utils';
 
 // Data models from WORKPLAN - ensuring compatibility
 export interface WorkspacesData {
@@ -58,11 +61,15 @@ export class WorkspaceManager {
     async getWorkspaces(): Promise<WorkspacesData> {
         try {
             const workspaceFile = await fs.readFile(this.workspacesFilePath, 'utf-8');
-            return JSON.parse(workspaceFile);
+            const workspaces = JSON.parse(workspaceFile);
+            return sortWorkspaces(workspaces);
         } catch (error) {
             console.error(`Could not read workspaces file for vault: ${this.vaultPath}`, error);
             // Return a default empty structure if file doesn't exist or is invalid
-            return { workspaces: {}, active: '' };
+            return {
+                workspaces: {},
+                active: ''
+            };
         }
     }
 

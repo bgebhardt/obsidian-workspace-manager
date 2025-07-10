@@ -1,8 +1,13 @@
 import express, { Express, Request, Response } from 'express';
 import { VaultManager } from './vaultManager';
 import { ProcessManager } from './processManager';
-import { WorkspaceManager as LocalWorkspaceManager } from './workspaceManager';
-import { asyncHandler } from './utils';
+import {
+    WorkspaceManager as LocalWorkspaceManager,
+    WorkspacesData
+} from './workspaceManager';
+import {
+    asyncHandler
+} from './utils';
 
 const app: Express = express();
 const port = 5005;
@@ -34,6 +39,32 @@ app.get('/api/workspaces', asyncHandler(async (req: Request, res: Response) => {
   const workspaceManager = new LocalWorkspaceManager(vaultPath);
   const workspacesData = await workspaceManager.getWorkspaces();
   res.json(workspacesData);
+}));
+
+app.post('/api/workspaces', asyncHandler(async (req: Request, res: Response) => {
+    const {
+        vaultPath,
+        workspaces
+    } = req.body;
+    if (!vaultPath || !workspaces) {
+        return res.status(400).json({
+            success: false,
+            error: 'Missing vaultPath or workspaces data'
+        });
+    }
+
+    try {
+        const manager = new LocalWorkspaceManager(vaultPath);
+        await manager.saveWorkspaces(workspaces);
+        res.json({
+            success: true
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 }));
 
 app.post('/api/workspaces/move', asyncHandler(async (req: Request, res: Response) => {

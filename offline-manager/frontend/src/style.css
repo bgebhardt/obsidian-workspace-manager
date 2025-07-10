@@ -233,3 +233,41 @@ button.danger:hover {
   gap: 1rem;
   justify-content: center;
 }
+
+.reorder-workspaces {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 1rem;
+}
+
+.reorder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  min-height: 100px;
+}
+
+.reorder-item {
+  padding: 0.75rem 1rem;
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.reorder-item:hover {
+  background-color: #f0f0f0;
+}
+
+.reorder-item.dragging {
+  opacity: 0.5;
+  background-color: #e0e7ff;
+}

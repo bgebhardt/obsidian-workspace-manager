@@ -26,6 +26,8 @@ const confirmationDialogEl = document.querySelector<HTMLDivElement>('#confirmati
 const confirmationMessageEl = document.querySelector<HTMLParagraphElement>('#confirmation-message')!;
 const confirmYesButtonEl = document.querySelector<HTMLButtonElement>('#confirm-yes-button')!;
 const confirmNoButtonEl = document.querySelector<HTMLButtonElement>('#confirm-no-button')!;
+const reorderListEl = document.querySelector<HTMLDivElement>('#reorder-list')!;
+const saveOrderButtonEl = document.querySelector<HTMLButtonElement>('#save-order-button')!;
 
 // --- Type Definitions ---
 interface ObsidianStatus {
@@ -111,6 +113,29 @@ async function getWorkspaces(vaultPath: string, selectedSource?: string | null, 
   }
 }
 
+async function saveWorkspaces(vaultPath: string, workspaces: WorkspacesData) {
+  try {
+    const response = await fetch('/api/workspaces', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        vaultPath,
+        workspaces,
+      }),
+    });
+    const result = await response.json();
+    if (response.ok && result.success) {
+      showNotification('Successfully saved workspace order!');
+    } else {
+      throw new Error(result.error || 'Unknown error');
+    }
+  } catch (error) {
+    showNotification(`Failed to save workspace order: ${error}`, 5000);
+  }
+}
+
 // --- UI Update Functions ---
 function updateObsidianStatus(status: ObsidianStatus | null) {
   if (status === null) {
@@ -170,7 +195,7 @@ function populateVaultSelector(vaults: ObsidianVault[]) {
 }
 
 function populateWorkspaceLists(data: WorkspacesData, selectedSource?: string | null, selectedTarget?: string | null) {
-  const workspaceNames = Object.keys(data.workspaces).sort((a, b) => a.localeCompare(b));
+  const workspaceNames = Object.keys(data.workspaces);
   sourceWorkspaceListEl.innerHTML = '';
   targetWorkspaceListEl.innerHTML = '';
   tabListEl.innerHTML = '';
@@ -219,6 +244,8 @@ function populateWorkspaceLists(data: WorkspacesData, selectedSource?: string | 
     sourceWorkspaceListEl.appendChild(sourceItem);
     targetWorkspaceListEl.appendChild(targetItem);
   });
+
+  populateReorderList(workspaceNames);
 }
 
 function displayTabsForWorkspace(workspaceName: string) {
@@ -284,6 +311,18 @@ function extractTabsFromWorkspace(workspace: WorkspaceLayout): TabInfo[] {
   }
   
   return tabs;
+}
+
+function populateReorderList(workspaceNames: string[]) {
+  reorderListEl.innerHTML = '';
+  workspaceNames.forEach(name => {
+    const item = document.createElement('div');
+    item.className = 'reorder-item';
+    item.textContent = name;
+    item.dataset.workspaceName = name;
+    item.draggable = true;
+    reorderListEl.appendChild(item);
+  });
 }
 
 function showNotification(message: string, duration = 3000) {
@@ -511,10 +550,87 @@ function main() {
   deleteButtonEl.addEventListener('click', handleDeleteOperation);
   deleteDuplicatesButtonEl.addEventListener('click', handleDeleteDuplicatesOperation);
   checkObsidianStatusButtonEl.addEventListener('click', getObsidianStatus);
+  saveOrderButtonEl.addEventListener('click', handleSaveOrder);
+
+  // Drag and drop for reordering
+  let draggedItem: HTMLElement | null = null;
+
+  reorderListEl.addEventListener('dragstart', (e) => {
+    draggedItem = e.target as HTMLElement;
+    setTimeout(() => {
+      if (draggedItem) {
+        draggedItem.classList.add('dragging');
+      }
+    }, 0);
+  });
+
+  reorderListEl.addEventListener('dragend', () => {
+    if (draggedItem) {
+      draggedItem.classList.remove('dragging');
+      draggedItem = null;
+    }
+  });
+
+  reorderListEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(reorderListEl, e.clientY);
+    const dragging = document.querySelector('.dragging');
+    if (dragging) {
+      if (afterElement == null) {
+        reorderListEl.appendChild(dragging);
+      } else {
+        reorderListEl.insertBefore(dragging, afterElement);
+      }
+    }
+  });
+
+  function getDragAfterElement(container: HTMLElement, y: number) {
+    const draggableElements = [...container.querySelectorAll('.reorder-item:not(.dragging)')];
+
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child as HTMLElement };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
 
   // Initial data load
   getObsidianStatus();
   getVaults();
+}
+
+async function handleSaveOrder() {
+  const vaultPath = vaultSelectorEl.value;
+  if (!vaultPath) {
+    showNotification('Please select a vault first.');
+    return;
+  }
+
+  if (!currentWorkspaces) {
+    showNotification('Workspace data not loaded.');
+    return;
+  }
+
+  const orderedWorkspaceNames = Array.from(reorderListEl.querySelectorAll('.reorder-item'))
+    .map(item => (item as HTMLElement).dataset.workspaceName!);
+
+  const reorderedWorkspaces: Record<string, WorkspaceLayout> = {};
+  orderedWorkspaceNames.forEach(name => {
+    reorderedWorkspaces[name] = currentWorkspaces!.workspaces[name];
+  });
+
+  const newWorkspacesData: WorkspacesData = {
+    ...currentWorkspaces,
+    workspaces: reorderedWorkspaces,
+  };
+
+  await saveWorkspaces(vaultPath, newWorkspacesData);
+  // Refresh the workspace data to show changes
+  getWorkspaces(vaultPath, null, null);
 }
 
 main();
