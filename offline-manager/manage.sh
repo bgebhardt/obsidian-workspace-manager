@@ -72,6 +72,26 @@ status() {
     fi
 }
 
+# Restart command
+restart() {
+    echo "Restarting services..."
+    stop
+    sleep 2
+    start
+}
+
+# Help command
+help() {
+    echo "Usage: $0 {start|stop|status|restart|help}"
+    echo
+    echo "Commands:"
+    echo "  start    Start the frontend and backend services."
+    echo "  stop     Stop the frontend and backend services."
+    echo "  status   Show the status of the services."
+    echo "  restart  Restart the services."
+    echo "  help     Show this help message."
+}
+
 # Main logic
 case "$1" in
     start)
@@ -83,8 +103,14 @@ case "$1" in
     status)
         status
         ;;
+    restart)
+        restart
+        ;;
+    help)
+        help
+        ;;
     *)
-        echo "Usage: $0 {start|stop|status}"
+        help
         exit 1
 esac
 
